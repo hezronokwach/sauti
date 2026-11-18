@@ -1,5 +1,7 @@
 # Sauti HMS
 
+[![CI](https://github.com/hezronokwach/sauti/actions/workflows/ci.yml/badge.svg?branch=staging)](https://github.com/hezronokwach/sauti/actions/workflows/ci.yml)
+
 A voice-first hospital management system for Kenyan clinics: reception, triage, consultation with live Swahili and English transcription, prescriptions with allergy checks, and cash or M-Pesa payments.
 
 ## Repository layout
