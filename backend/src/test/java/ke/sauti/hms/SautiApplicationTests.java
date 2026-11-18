@@ -1,4 +1,4 @@
-package ke.sauti;
+package ke.sauti.hms;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
