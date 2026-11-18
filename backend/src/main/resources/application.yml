@@ -1,0 +1,29 @@
+# Shared settings for every profile.
+# Secrets are never written here: use ${ENV_NAME} and list the name in .env.example.
+spring:
+  application:
+    name: sauti-hms
+  profiles:
+    # Running from the IDE without SPRING_PROFILES_ACTIVE gives the dev profile.
+    default: dev
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the schema; Hibernate only checks entities match it.
+      ddl-auto: validate
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+sauti:
+  # Environment variables that must be set before the app may start.
+  # Each profile that talks to real services lists its own.
+  required-env: []
