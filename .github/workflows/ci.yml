@@ -31,8 +31,18 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
-      - name: Build and test (Testcontainers uses the runner's Docker)
+      # verify also checks formatting (Spotless), fails on compiler and Error Prone
+      # warnings, and writes the JaCoCo coverage report.
+      - name: Build, check and test (Testcontainers uses the runner's Docker)
         run: ./mvnw -B -ntp verify
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-coverage
+          path: backend/target/site/jacoco/
+          retention-days: 14
 
       - name: Upload test reports
         if: failure()

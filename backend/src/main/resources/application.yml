@@ -12,6 +12,11 @@ spring:
       # Flyway owns the schema; Hibernate only checks entities match it.
       ddl-auto: validate
 
+logging:
+  pattern:
+    # Every log line carries the request id set by RequestIdFilter ("-" outside a request).
+    correlation: "[%X{requestId:--}] "
+
 management:
   endpoints:
     web:
