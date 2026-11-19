@@ -6,6 +6,18 @@
       "description": "Environment variables that must be set and non-blank before the application may start. Each profile that talks to real services lists its own; startup fails naming every missing one.",
       "sourceType": "ke.sauti.hms.common.config.RequiredEnvironmentCheck",
       "defaultValue": []
+    },
+    {
+      "name": "sauti.crypto.encryption-key",
+      "type": "java.lang.String",
+      "description": "AES-256-GCM key for encrypted columns: 32 random bytes in Base64. Set through APP_ENCRYPTION_KEY.",
+      "sourceType": "ke.sauti.hms.common.crypto.CryptoProperties"
+    },
+    {
+      "name": "sauti.crypto.hash-key",
+      "type": "java.lang.String",
+      "description": "HMAC-SHA256 key for lookup hashes of encrypted values: 32 random bytes in Base64, different from the encryption key. Set through HASH_KEY.",
+      "sourceType": "ke.sauti.hms.common.crypto.CryptoProperties"
     }
   ]
 }

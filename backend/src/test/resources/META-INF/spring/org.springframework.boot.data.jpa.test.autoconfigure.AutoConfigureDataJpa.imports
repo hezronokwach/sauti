@@ -1,0 +1,2 @@
+# Every @DataJpaTest loads every entity, and encrypted columns need the cipher.
+ke.sauti.hms.common.crypto.CryptoConfiguration
