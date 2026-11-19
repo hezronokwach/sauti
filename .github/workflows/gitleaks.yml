@@ -1,0 +1,32 @@
+name: Secret scan
+
+# Scans for committed secrets (keys, tokens, passwords) on every pull request and
+# every push to staging. GitHub's own push protection covers known provider token
+# formats; gitleaks adds generic patterns such as private keys and password values.
+on:
+  pull_request:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitleaks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the whole history, so a secret removed later is still found
+
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No GITLEAKS_LICENSE: not required for repositories on a personal account.
