@@ -1,8 +1,7 @@
 package ke.sauti.hms.common.error;
 
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import ke.sauti.hms.common.web.RequestIdFilter;
 import ke.sauti.hms.common.web.RequestIds;
 import org.slf4j.Logger;
@@ -26,20 +25,27 @@ public abstract class BaseExceptionHandler {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected ResponseEntity<ApiError> respond(ErrorCode code, String message, Exception exception,
-                                               HttpServletRequest request) {
+    protected ResponseEntity<ApiError> respond(
+            ErrorCode code, String message, Exception exception, HttpServletRequest request) {
         return respond(code, message, List.of(), exception, request, new HttpHeaders());
     }
 
-    protected ResponseEntity<ApiError> respond(ErrorCode code, String message,
-                                               List<ApiError.FieldError> fieldErrors, Exception exception,
-                                               HttpServletRequest request) {
+    protected ResponseEntity<ApiError> respond(
+            ErrorCode code,
+            String message,
+            List<ApiError.FieldError> fieldErrors,
+            Exception exception,
+            HttpServletRequest request) {
         return respond(code, message, fieldErrors, exception, request, new HttpHeaders());
     }
 
-    protected ResponseEntity<ApiError> respond(ErrorCode code, String message,
-                                               List<ApiError.FieldError> fieldErrors, Exception exception,
-                                               HttpServletRequest request, HttpHeaders headers) {
+    protected ResponseEntity<ApiError> respond(
+            ErrorCode code,
+            String message,
+            List<ApiError.FieldError> fieldErrors,
+            Exception exception,
+            HttpServletRequest request,
+            HttpHeaders headers) {
         String safeMessage = message == null ? code.defaultMessage() : message;
         String requestId = RequestIds.current(request);
         logError(code, safeMessage, exception, request);

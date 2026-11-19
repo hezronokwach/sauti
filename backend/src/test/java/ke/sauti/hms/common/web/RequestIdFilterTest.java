@@ -3,10 +3,9 @@ package ke.sauti.hms.common.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.servlet.FilterChain;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-
-import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
@@ -68,7 +67,9 @@ class RequestIdFilterTest {
 
         filter.doFilter(request, response, recordingChain);
 
-        assertThat(response.getHeader(RequestIdFilter.HEADER)).isNotEqualTo("1-1-1-1-1").hasSize(36);
+        assertThat(response.getHeader(RequestIdFilter.HEADER))
+                .isNotEqualTo("1-1-1-1-1")
+                .hasSize(36);
     }
 
     @Test

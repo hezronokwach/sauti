@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
  * the status is the HTTP status sent with it; the default message is safe to show.
  */
 public enum ErrorCode {
-
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "The request has invalid fields"),
     MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, "The request could not be read"),
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "You need to log in"),

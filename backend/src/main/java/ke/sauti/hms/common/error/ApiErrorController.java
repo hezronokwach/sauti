@@ -18,8 +18,8 @@ public class ApiErrorController extends BaseExceptionHandler implements ErrorCon
     @RequestMapping("/error")
     ResponseEntity<ApiError> error(HttpServletRequest request) {
         int status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE) instanceof Integer code ? code : 500;
-        Exception exception = request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) instanceof Exception ex
-                ? ex : null;
+        Exception exception =
+                request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) instanceof Exception ex ? ex : null;
         return respond(ErrorCode.forStatus(status), null, exception, request);
     }
 }

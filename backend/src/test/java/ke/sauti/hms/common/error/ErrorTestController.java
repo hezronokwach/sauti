@@ -1,10 +1,9 @@
 package ke.sauti.hms.common.error;
 
-import java.time.Duration;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import java.time.Duration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,8 +23,7 @@ class ErrorTestController {
 
     static final String SECRET_DETAIL = "internal-detail-that-must-not-leak";
 
-    record Body(@NotBlank String name, @Min(1) int count) {
-    }
+    record Body(@NotBlank String name, @Min(1) int count) {}
 
     @GetMapping("/not-found")
     void notFound() {
