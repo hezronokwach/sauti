@@ -56,6 +56,35 @@ class StaffTest {
     }
 
     @Test
+    void confirmingTheAuthenticatorTurnsCodesOn() {
+        Staff staff = receptionist();
+        staff.startAuthenticatorSetup("JBSWY3DPEHPK3PXP");
+
+        staff.confirmAuthenticator();
+
+        assertThat(staff.isMfaEnabled()).isTrue();
+    }
+
+    @Test
+    void anAuthenticatorCannotBeConfirmedWithoutASecret() {
+        Staff staff = receptionist();
+
+        assertThatThrownBy(staff::confirmAuthenticator).isInstanceOf(IllegalStateException.class);
+        assertThat(staff.isMfaEnabled()).isFalse();
+    }
+
+    @Test
+    void onlyANewerCodeStepIsAccepted() {
+        Staff staff = receptionist();
+
+        assertThat(staff.acceptCodeStep(100)).isTrue();
+        assertThat(staff.acceptCodeStep(100)).isFalse();
+        assertThat(staff.acceptCodeStep(99)).isFalse();
+        assertThat(staff.acceptCodeStep(101)).isTrue();
+        assertThat(staff.getLastCodeStep()).isEqualTo(101);
+    }
+
+    @Test
     void onlyDoctorsAndNursesNeedALicence() {
         assertThat(StaffRole.DOCTOR.requiresLicence()).isTrue();
         assertThat(StaffRole.NURSE.requiresLicence()).isTrue();
