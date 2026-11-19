@@ -4,13 +4,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.Clock;
-import java.util.UUID;
 import ke.sauti.hms.common.error.ErrorCode;
-import ke.sauti.hms.staff.StaffRole;
-import org.jspecify.annotations.Nullable;
+import ke.sauti.hms.security.dto.ChangePasswordRequest;
+import ke.sauti.hms.security.dto.CurrentStaffResponse;
+import ke.sauti.hms.security.dto.LoginCodeRequest;
+import ke.sauti.hms.security.dto.LoginNextStepResponse;
+import ke.sauti.hms.security.dto.LoginPasswordRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -42,42 +42,8 @@ public class AuthController {
         this.clock = clock;
     }
 
-    public record LoginRequest(
-            @NotBlank @Size(max = 254) String email,
-            @NotBlank @Size(max = 128) String password) {}
-
-    /**
-     * What the password step asks for next.
-     *
-     * @param codeRequired send an authenticator code next
-     * @param setupRequired scan {@code otpauthUri} into an authenticator app, then send a code
-     * @param otpauthUri the setup QR content; only present when setup is required
-     */
-    public record LoginResponse(
-            boolean codeRequired,
-            boolean setupRequired,
-            @Nullable String otpauthUri) {}
-
-    public record CodeRequest(@NotBlank @Size(max = 10) String code) {}
-
-    public record PasswordChangeRequest(
-            @NotBlank @Size(max = 128) String currentPassword,
-            @NotBlank @Size(min = 12, max = 128) String newPassword) {}
-
-    public record MeResponse(UUID id, String fullName, String email, StaffRole role, boolean mustChangePassword) {
-
-        static MeResponse of(StaffPrincipal principal) {
-            return new MeResponse(
-                    principal.id(),
-                    principal.fullName(),
-                    principal.email(),
-                    principal.role(),
-                    principal.mustChangePassword());
-        }
-    }
-
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest body, HttpServletRequest request) {
+    public LoginNextStepResponse login(@Valid @RequestBody LoginPasswordRequest body, HttpServletRequest request) {
         HttpSession existing = request.getSession(false);
         if (existing != null) {
             existing.removeAttribute(PendingLogin.ATTRIBUTE);
@@ -93,21 +59,21 @@ public class AuthController {
                         .setAttribute(
                                 PendingLogin.ATTRIBUTE,
                                 PendingLogin.startingAt(codeRequired.staffId(), false, clock.instant()));
-                yield new LoginResponse(true, false, null);
+                yield LoginNextStepResponse.askForCode();
             }
             case PasswordStep.SetupRequired setup -> {
                 request.getSession()
                         .setAttribute(
                                 PendingLogin.ATTRIBUTE,
                                 PendingLogin.startingAt(setup.staffId(), true, clock.instant()));
-                yield new LoginResponse(true, true, setup.otpauthUri());
+                yield LoginNextStepResponse.askForSetup(setup.otpauthUri());
             }
         };
     }
 
     @PostMapping("/code")
-    public MeResponse code(
-            @Valid @RequestBody CodeRequest body, HttpServletRequest request, HttpServletResponse response) {
+    public CurrentStaffResponse code(
+            @Valid @RequestBody LoginCodeRequest body, HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
         PendingLogin pending = session == null ? null : (PendingLogin) session.getAttribute(PendingLogin.ATTRIBUTE);
         if (pending == null || pending.isExpired(clock.instant())) {
@@ -128,25 +94,25 @@ public class AuthController {
             case CodeStep.LoggedIn loggedIn -> {
                 session.removeAttribute(PendingLogin.ATTRIBUTE);
                 saveNewContext(request, response);
-                yield MeResponse.of(loggedIn.principal());
+                yield CurrentStaffResponse.of(loggedIn.principal());
             }
         };
     }
 
     @GetMapping("/me")
-    public MeResponse me(@AuthenticationPrincipal StaffPrincipal principal) {
-        return MeResponse.of(principal);
+    public CurrentStaffResponse me(@AuthenticationPrincipal StaffPrincipal principal) {
+        return CurrentStaffResponse.of(principal);
     }
 
     @PostMapping("/password")
-    public MeResponse changePassword(
+    public CurrentStaffResponse changePassword(
             @AuthenticationPrincipal StaffPrincipal principal,
-            @Valid @RequestBody PasswordChangeRequest body,
+            @Valid @RequestBody ChangePasswordRequest body,
             HttpServletRequest request,
             HttpServletResponse response) {
         StaffPrincipal updated = loginService.changePassword(principal, body.currentPassword(), body.newPassword());
         saveNewContext(request, response);
-        return MeResponse.of(updated);
+        return CurrentStaffResponse.of(updated);
     }
 
     @PostMapping("/logout")
