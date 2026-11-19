@@ -6,6 +6,10 @@ spring:
   profiles:
     # Running from the IDE without SPRING_PROFILES_ACTIVE gives the dev profile.
     default: dev
+  session:
+    jdbc:
+      # Flyway creates the session tables (V3__spring_session.sql).
+      initialize-schema: never
   jpa:
     open-in-view: false
     hibernate:
