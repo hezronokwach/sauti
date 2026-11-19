@@ -13,3 +13,4 @@ One line per decision and why. Newest at the bottom.
 - 2026-11-19: Errors use one `ApiError` shape built only in `BaseExceptionHandler`; every handler extends it, feature code throws `ApiException` subclasses, and a feature adds its own handler only for a genuinely new exception type.
 - 2026-11-19: Client errors log one WARN line without a stack trace; server errors log at ERROR with the stack trace; exception messages from libraries never reach the response.
 - 2026-11-19: An incoming `X-Request-Id` is reused only if it is a canonical UUID; anything else is replaced so outside text never reaches the logs.
+- 2026-11-19: Entity ids are version 7 UUIDs (time-ordered, index-friendly); timestamps come from the injected `Clock` through JPA auditing.
