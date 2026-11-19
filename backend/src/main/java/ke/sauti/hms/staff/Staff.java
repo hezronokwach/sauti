@@ -76,6 +76,20 @@ public class Staff extends BaseEntity {
         return Objects.requireNonNull(email, "email").trim().toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * Stops the account from logging in. Ending the person's open sessions is the
+     * caller's job (issue 14), since sessions live outside this entity.
+     */
+    public void disable() {
+        this.status = StaffStatus.DISABLED;
+    }
+
+    /** Replaces the password hash; a freely chosen password ends the forced change. */
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = Objects.requireNonNull(newPasswordHash, "newPasswordHash");
+        this.mustChangePassword = false;
+    }
+
     public String getFullName() {
         return fullName;
     }
