@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.servlet.FilterChain;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
@@ -40,7 +41,7 @@ class RequestIdFilterTest {
     @Test
     void normalisesAnUppercaseIncomingId() throws Exception {
         String incoming = UUID.randomUUID().toString();
-        request.addHeader(RequestIdFilter.HEADER, incoming.toUpperCase());
+        request.addHeader(RequestIdFilter.HEADER, incoming.toUpperCase(Locale.ROOT));
 
         filter.doFilter(request, response, recordingChain);
 
