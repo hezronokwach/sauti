@@ -10,10 +10,11 @@ describe('routes', () => {
     );
   });
 
-  it('shows the home page at /', () => {
+  it('shows the home page with the backend status at /', async () => {
     renderRoute('/');
 
     expect(screen.getByRole('heading', { name: 'Sauti HMS' })).toBeInTheDocument();
+    expect(await screen.findByText('UP')).toBeInTheDocument();
   });
 
   it('shows the not-found page for an unknown path', () => {
