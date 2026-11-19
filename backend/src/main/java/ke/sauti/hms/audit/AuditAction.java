@@ -5,6 +5,7 @@ public enum AuditAction {
     LOGIN_OK,
     LOGIN_FAILED,
     LOGOUT,
+    PASSWORD_CHANGED,
     STAFF_CREATED,
     STAFF_DISABLED,
     ACCESS_DENIED
