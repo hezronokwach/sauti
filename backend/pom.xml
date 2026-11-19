@@ -33,6 +33,11 @@
         <jacoco.version>0.8.16</jacoco.version>
         <palantir-java-format.version>2.103.0</palantir-java-format.version>
         <spotless.version>3.11.0</spotless.version>
+        <!-- Patch releases newer than Spring Boot 4.1.2 manages, for known vulnerabilities
+             flagged by Qodana. Drop each override once Boot's own version catches up. -->
+        <commons-codec.version>1.22.1</commons-codec.version>
+        <jackson-bom.version>3.1.8</jackson-bom.version>
+        <json-smart.version>2.6.1</json-smart.version>
     </properties>
     <dependencies>
         <dependency>
