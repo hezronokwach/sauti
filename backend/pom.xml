@@ -148,6 +148,8 @@
                         <arg>-Xlint:all,-serial,-processing</arg>
                         <arg>-Werror</arg>
                         <arg>-XDcompilePolicy=simple</arg>
+                        <!-- Required by Error Prone on JDK 21; harmless on newer JDKs. -->
+                        <arg>-XDaddTypeAnnotationsToSymbol=true</arg>
                         <arg>--should-stop=ifError=FLOW</arg>
                         <arg>-Xplugin:ErrorProne -XepDisableWarningsInGeneratedCode</arg>
                     </compilerArgs>
