@@ -46,6 +46,16 @@ class StaffTest {
     }
 
     @Test
+    void startingAuthenticatorSetupStoresTheSecretButDoesNotRequireCodesYet() {
+        Staff staff = receptionist();
+
+        staff.startAuthenticatorSetup("JBSWY3DPEHPK3PXP");
+
+        assertThat(staff.getMfaSecret()).isEqualTo("JBSWY3DPEHPK3PXP");
+        assertThat(staff.isMfaEnabled()).isFalse();
+    }
+
+    @Test
     void onlyDoctorsAndNursesNeedALicence() {
         assertThat(StaffRole.DOCTOR.requiresLicence()).isTrue();
         assertThat(StaffRole.NURSE.requiresLicence()).isTrue();

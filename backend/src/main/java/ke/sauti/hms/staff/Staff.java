@@ -1,6 +1,7 @@
 package ke.sauti.hms.staff;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -8,12 +9,12 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
+import ke.sauti.hms.common.crypto.EncryptedStringConverter;
 import ke.sauti.hms.common.persistence.BaseEntity;
 
 /**
  * A person who logs in. Login state (failed attempts, lock, authenticator) lives here;
- * the login flow itself arrives in issues 11 and 12. The encrypted authenticator
- * secret column exists in the table and is mapped once the encryption helper exists.
+ * the login flow itself arrives in issues 11 and 12.
  */
 @Entity
 @Table(name = "staff")
@@ -37,6 +38,11 @@ public class Staff extends BaseEntity {
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+
+    /** Authenticator secret (Base32); encrypted in the column, plain text here. */
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(name = "mfa_secret")
+    private String mfaSecret;
 
     @Column(name = "mfa_enabled", nullable = false)
     private boolean mfaEnabled;
@@ -88,6 +94,18 @@ public class Staff extends BaseEntity {
     public void changePassword(String newPasswordHash) {
         this.passwordHash = Objects.requireNonNull(newPasswordHash, "newPasswordHash");
         this.mustChangePassword = false;
+    }
+
+    /**
+     * Stores a newly generated authenticator secret. Codes are not required until the
+     * person proves the authenticator works (issue 11 turns {@code mfaEnabled} on).
+     */
+    public void startAuthenticatorSetup(String secret) {
+        this.mfaSecret = Objects.requireNonNull(secret, "secret");
+    }
+
+    public String getMfaSecret() {
+        return mfaSecret;
     }
 
     public String getFullName() {
