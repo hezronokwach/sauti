@@ -28,6 +28,16 @@ Spring Boot starts the containers in `compose.yaml` automatically. Tests use Tes
 ./mvnw verify
 ```
 
+## Code quality checks
+
+`./mvnw verify` (locally and in CI) also fails when:
+
+- code is not formatted with palantir-java-format (Spotless); fix it with `./mvnw spotless:apply`
+- the compiler reports a warning (`-Xlint:all -Werror`)
+- Error Prone finds a likely bug; the message names the pattern and a suggested fix
+
+It also writes a test coverage report to `backend/target/site/jacoco/index.html`; CI uploads it as the `backend-coverage` artifact.
+
 ## Configuration
 
 Every environment variable is listed by name in `.env.example`. Never commit real values.

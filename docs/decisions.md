@@ -14,3 +14,4 @@ One line per decision and why. Newest at the bottom.
 - 2026-11-19: Client errors log one WARN line without a stack trace; server errors log at ERROR with the stack trace; exception messages from libraries never reach the response.
 - 2026-11-19: An incoming `X-Request-Id` is reused only if it is a canonical UUID; anything else is replaced so outside text never reaches the logs.
 - 2026-11-19: Entity ids are version 7 UUIDs (time-ordered, index-friendly); timestamps come from the injected `Clock` through JPA auditing.
+- 2026-11-19: Java quality gates run inside `./mvnw verify`: Spotless with palantir-java-format, compiler warnings as errors (`-Xlint:all` minus serial and processing), Error Prone, and a JaCoCo coverage report with no threshold yet.
