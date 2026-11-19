@@ -15,3 +15,10 @@ management:
 logging:
   level:
     ke.sauti.hms: debug
+
+sauti:
+  crypto:
+    # Local only, not secret: fixed so data in the local database stays readable
+    # across restarts. Every real deployment sets APP_ENCRYPTION_KEY and HASH_KEY.
+    encryption-key: 2/cNRn5/KmEG1U+9IgMmz2IyJWQx3djKbAEUObgH7yI= # gitleaks:allow
+    hash-key: jA5syg0IlB6gDyHdC+5yaz3pp09KDWr1Svrv9lxXC58= # gitleaks:allow
