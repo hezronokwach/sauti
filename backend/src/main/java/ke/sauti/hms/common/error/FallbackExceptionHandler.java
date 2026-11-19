@@ -1,7 +1,6 @@
 package ke.sauti.hms.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * generic message and the request id, the log carries the stack trace.
  */
 @RestControllerAdvice
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order // default order is the lowest precedence, so this handler runs last
 public class FallbackExceptionHandler extends BaseExceptionHandler {
 
     @ExceptionHandler(Exception.class)

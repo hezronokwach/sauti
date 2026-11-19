@@ -28,10 +28,16 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <archunit.version>1.5.1</archunit.version>
         <error-prone.version>2.52.0</error-prone.version>
         <jacoco.version>0.8.16</jacoco.version>
         <palantir-java-format.version>2.103.0</palantir-java-format.version>
         <spotless.version>3.11.0</spotless.version>
+        <!-- Patch releases newer than Spring Boot 4.1.2 manages, for known vulnerabilities
+             flagged by Qodana. Drop each override once Boot's own version catches up. -->
+        <commons-codec.version>1.22.1</commons-codec.version>
+        <jackson-bom.version>3.1.8</jackson-bom.version>
+        <json-smart.version>2.6.1</json-smart.version>
     </properties>
     <dependencies>
         <dependency>
@@ -127,6 +133,12 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit</artifactId>
+            <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
