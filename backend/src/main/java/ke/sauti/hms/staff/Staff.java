@@ -104,6 +104,29 @@ public class Staff extends BaseEntity {
         this.mfaSecret = Objects.requireNonNull(secret, "secret");
     }
 
+    /** Turns codes on once the person has entered a first correct code from the new authenticator. */
+    public void confirmAuthenticator() {
+        if (mfaSecret == null) {
+            throw new IllegalStateException("No authenticator secret to confirm");
+        }
+        this.mfaEnabled = true;
+    }
+
+    /**
+     * Records the time step of a correct code, refusing any step not newer than the last
+     * one used, so each code works only once. Two concurrent uses of the same code both
+     * try to save this entity; the version check fails the second.
+     *
+     * @return whether the step was newer and is now recorded
+     */
+    public boolean acceptCodeStep(long step) {
+        if (lastCodeStep != null && step <= lastCodeStep) {
+            return false;
+        }
+        this.lastCodeStep = step;
+        return true;
+    }
+
     public String getMfaSecret() {
         return mfaSecret;
     }
