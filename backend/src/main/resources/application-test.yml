@@ -1,0 +1,6 @@
+# Automated tests: PostgreSQL comes from Testcontainers (@ServiceConnection),
+# outside services use fake adapters, and time comes from a fixed clock once
+# the clock bean exists. Docker Compose support is skipped in tests by default.
+logging:
+  level:
+    ke.sauti.hms: debug

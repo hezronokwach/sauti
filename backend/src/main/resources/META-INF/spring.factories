@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+ke.sauti.hms.common.config.RequiredEnvironmentCheck

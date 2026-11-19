@@ -1,0 +1,17 @@
+# Local development: Spring Boot starts compose.yaml (PostgreSQL and object storage)
+# and connects to it automatically, so no database settings are needed here.
+# Outside services (transcription, AI, registry, payments) use fake adapters in
+# this profile; each adapter's switch is added here when the adapter is built.
+spring:
+  docker:
+    compose:
+      lifecycle-management: start-only
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    ke.sauti.hms: debug

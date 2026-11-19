@@ -1,0 +1,16 @@
+# Public demo: real services, every connection detail from the environment.
+# The app refuses to start if any variable in sauti.required-env is missing.
+spring:
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+sauti:
+  required-env:
+    - DATABASE_URL
+    - DATABASE_USERNAME
+    - DATABASE_PASSWORD
