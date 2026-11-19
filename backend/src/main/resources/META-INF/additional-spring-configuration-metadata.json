@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {
+      "name": "sauti.required-env",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Environment variables that must be set and non-blank before the application may start. Each profile that talks to real services lists its own; startup fails naming every missing one.",
+      "sourceType": "ke.sauti.hms.common.config.RequiredEnvironmentCheck",
+      "defaultValue": []
+    }
+  ]
+}
