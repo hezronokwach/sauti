@@ -21,8 +21,7 @@ public class PersistenceExceptionHandler extends BaseExceptionHandler {
 
     /** A unique, foreign key or check constraint rejected the change. */
     @ExceptionHandler(DataIntegrityViolationException.class)
-    ResponseEntity<ApiError> handleIntegrityViolation(DataIntegrityViolationException ex,
-                                                      HttpServletRequest request) {
+    ResponseEntity<ApiError> handleIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
         return respond(ErrorCode.CONFLICT, null, ex, request);
     }
 }

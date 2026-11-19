@@ -1,8 +1,7 @@
 package ke.sauti.hms.common.error;
 
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +24,8 @@ public class WebExceptionHandler extends BaseExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    ResponseEntity<ApiError> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex,
-                                                    HttpServletRequest request) {
+    ResponseEntity<ApiError> handleMethodNotAllowed(
+            HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         HttpHeaders headers = new HttpHeaders();
         if (ex.getSupportedHttpMethods() != null) {
             headers.setAllow(ex.getSupportedHttpMethods());
@@ -35,8 +34,8 @@ public class WebExceptionHandler extends BaseExceptionHandler {
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    ResponseEntity<ApiError> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex,
-                                                        HttpServletRequest request) {
+    ResponseEntity<ApiError> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
         return respond(ErrorCode.UNSUPPORTED_MEDIA_TYPE, null, ex, request);
     }
 

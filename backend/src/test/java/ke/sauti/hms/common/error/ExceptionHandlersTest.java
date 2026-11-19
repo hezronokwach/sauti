@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
-
 import ke.sauti.hms.common.web.RequestIdFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,9 +94,12 @@ class ExceptionHandlersTest {
 
     @Test
     void invalidBodyListsEveryField() throws Exception {
-        expectError(mvc.perform(post("/test/validated")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\" \",\"count\":0}")), 400, "VALIDATION_FAILED")
+        expectError(
+                        mvc.perform(post("/test/validated")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\" \",\"count\":0}")),
+                        400,
+                        "VALIDATION_FAILED")
                 .andExpect(jsonPath("$.fieldErrors", hasSize(2)))
                 .andExpect(jsonPath("$.fieldErrors[*].field", containsInAnyOrder("name", "count")));
     }
@@ -110,9 +112,12 @@ class ExceptionHandlersTest {
 
     @Test
     void malformedJson() throws Exception {
-        expectError(mvc.perform(post("/test/validated")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{not json")), 400, "MALFORMED_REQUEST")
+        expectError(
+                        mvc.perform(post("/test/validated")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{not json")),
+                        400,
+                        "MALFORMED_REQUEST")
                 .andExpect(jsonPath("$.fieldErrors", emptyIterable()));
     }
 
@@ -156,9 +161,12 @@ class ExceptionHandlersTest {
 
     @Test
     void unsupportedContentType() throws Exception {
-        expectError(mvc.perform(post("/test/validated")
+        expectError(
+                mvc.perform(post("/test/validated")
                         .contentType(MediaType.TEXT_PLAIN)
-                        .content("hello")), 415, "UNSUPPORTED_MEDIA_TYPE");
+                        .content("hello")),
+                415,
+                "UNSUPPORTED_MEDIA_TYPE");
     }
 
     // ---- Security ----------------------------------------------------------------
@@ -210,8 +218,7 @@ class ExceptionHandlersTest {
     private ResultActions expectError(ResultActions result, int status, String code) throws Exception {
         String headerId = result.andReturn().getResponse().getHeader(RequestIdFilter.HEADER);
         assertThat(headerId).as("X-Request-Id header").isNotBlank();
-        return result
-                .andExpect(status().is(status))
+        return result.andExpect(status().is(status))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value(code))
                 .andExpect(jsonPath("$.message").isNotEmpty())

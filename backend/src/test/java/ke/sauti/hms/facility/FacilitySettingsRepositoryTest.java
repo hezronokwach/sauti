@@ -27,8 +27,8 @@ class FacilitySettingsRepositoryTest {
 
     @Test
     void flywayAppliedTheFirstMigration() {
-        Boolean success = jdbc.queryForObject(
-                "select success from flyway_schema_history where version = '1'", Boolean.class);
+        Boolean success =
+                jdbc.queryForObject("select success from flyway_schema_history where version = '1'", Boolean.class);
 
         assertThat(success).isTrue();
     }
@@ -46,8 +46,8 @@ class FacilitySettingsRepositoryTest {
 
     @Test
     void allowsOnlyOneFacilityRow() {
-        assertThatThrownBy(() -> jdbc.update(
-                "insert into facility_settings (name, code) values ('Second Clinic', 'SECOND')"))
+        assertThatThrownBy(() ->
+                        jdbc.update("insert into facility_settings (name, code) values ('Second Clinic', 'SECOND')"))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 

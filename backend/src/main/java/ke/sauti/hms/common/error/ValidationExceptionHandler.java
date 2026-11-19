@@ -1,10 +1,9 @@
 package ke.sauti.hms.common.error;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
@@ -26,17 +25,19 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiError> handleInvalidBody(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<ApiError.FieldError> fields = new ArrayList<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                fields.add(new ApiError.FieldError(error.getField(), error.getDefaultMessage())));
-        ex.getBindingResult().getGlobalErrors().forEach(error ->
-                fields.add(new ApiError.FieldError(error.getObjectName(), error.getDefaultMessage())));
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(error -> fields.add(new ApiError.FieldError(error.getField(), error.getDefaultMessage())));
+        ex.getBindingResult()
+                .getGlobalErrors()
+                .forEach(
+                        error -> fields.add(new ApiError.FieldError(error.getObjectName(), error.getDefaultMessage())));
         return respond(ErrorCode.VALIDATION_FAILED, null, fields, ex, request);
     }
 
     /** Constraints on controller method parameters (path variables, query parameters) failed. */
     @ExceptionHandler(HandlerMethodValidationException.class)
-    ResponseEntity<ApiError> handleInvalidParameters(HandlerMethodValidationException ex,
-                                                     HttpServletRequest request) {
+    ResponseEntity<ApiError> handleInvalidParameters(HandlerMethodValidationException ex, HttpServletRequest request) {
         List<ApiError.FieldError> fields = new ArrayList<>();
         for (ParameterValidationResult result : ex.getParameterValidationResults()) {
             String name = result.getMethodParameter().getParameterName();
@@ -49,11 +50,10 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
 
     /** Constraints checked by a validated service method failed. */
     @ExceptionHandler(ConstraintViolationException.class)
-    ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex,
-                                                       HttpServletRequest request) {
+    ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
         List<ApiError.FieldError> fields = ex.getConstraintViolations().stream()
-                .map(violation -> new ApiError.FieldError(
-                        violation.getPropertyPath().toString(), violation.getMessage()))
+                .map(violation ->
+                        new ApiError.FieldError(violation.getPropertyPath().toString(), violation.getMessage()))
                 .toList();
         return respond(ErrorCode.VALIDATION_FAILED, null, fields, ex, request);
     }
@@ -73,8 +73,8 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
 
     /** A required query parameter is missing. */
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    ResponseEntity<ApiError> handleMissingParameter(MissingServletRequestParameterException ex,
-                                                    HttpServletRequest request) {
+    ResponseEntity<ApiError> handleMissingParameter(
+            MissingServletRequestParameterException ex, HttpServletRequest request) {
         List<ApiError.FieldError> fields = List.of(new ApiError.FieldError(ex.getParameterName(), "is required"));
         return respond(ErrorCode.VALIDATION_FAILED, null, fields, ex, request);
     }

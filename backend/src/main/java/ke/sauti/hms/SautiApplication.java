@@ -9,5 +9,4 @@ public class SautiApplication {
     public static void main(String[] args) {
         SpringApplication.run(SautiApplication.class, args);
     }
-
 }

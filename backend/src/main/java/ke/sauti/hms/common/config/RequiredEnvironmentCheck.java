@@ -1,7 +1,6 @@
 package ke.sauti.hms.common.config;
 
 import java.util.List;
-
 import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -33,11 +32,10 @@ public class RequiredEnvironmentCheck implements EnvironmentPostProcessor, Order
                 .toList();
 
         if (!missing.isEmpty()) {
-            throw new IllegalStateException(
-                    "Missing required environment variables for active profiles "
-                            + List.of(environment.getActiveProfiles()) + ": "
-                            + String.join(", ", missing)
-                            + ". Set them in the host environment; every name is listed in .env.example.");
+            throw new IllegalStateException("Missing required environment variables for active profiles "
+                    + List.of(environment.getActiveProfiles()) + ": "
+                    + String.join(", ", missing)
+                    + ". Set them in the host environment; every name is listed in .env.example.");
         }
     }
 

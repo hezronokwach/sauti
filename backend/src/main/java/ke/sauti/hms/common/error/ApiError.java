@@ -17,6 +17,5 @@ public record ApiError(String code, String message, List<FieldError> fieldErrors
     }
 
     /** One invalid field and what is wrong with it. */
-    public record FieldError(String field, String message) {
-    }
+    public record FieldError(String field, String message) {}
 }

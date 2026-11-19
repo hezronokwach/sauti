@@ -6,8 +6,7 @@ import org.slf4j.MDC;
 /** Reads the current request's id, set by {@link RequestIdFilter}. */
 public final class RequestIds {
 
-    private RequestIds() {
-    }
+    private RequestIds() {}
 
     /**
      * The request's id from the logging context, or from the request attribute when
