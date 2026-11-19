@@ -28,6 +28,18 @@ Spring Boot starts the containers in `compose.yaml` automatically. Tests use Tes
 ./mvnw verify
 ```
 
+## Running the frontend
+
+Requires Node 26. With the backend running:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173; the page shows whether the backend answers through the dev proxy. See `frontend/README.md` for the checks (lint, type-check, format, tests).
+
 ## Code quality checks
 
 `./mvnw verify` (locally and in CI) also fails when:
