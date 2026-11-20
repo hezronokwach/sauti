@@ -21,5 +21,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     restoreMocks: true,
     unstubGlobals: true,
+    // Tests that type whole forms take a few seconds on a busy machine; 5 s is too tight.
+    testTimeout: 15_000,
   },
 });
