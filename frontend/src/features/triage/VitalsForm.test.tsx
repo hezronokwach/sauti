@@ -43,7 +43,7 @@ describe('VitalsForm', () => {
       },
     });
     const onRecorded = vi.fn();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderWithQuery(<VitalsForm visitId="visit-1" onRecorded={onRecorded} />);
 
     await fillNormal(user);
@@ -68,7 +68,7 @@ describe('VitalsForm', () => {
 
   it('refuses impossible values field by field without sending anything', async () => {
     const fetchMock = mockApi({});
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderWithQuery(<VitalsForm visitId="visit-1" onRecorded={vi.fn()} />);
 
     await fillNormal(user);
@@ -89,7 +89,7 @@ describe('VitalsForm', () => {
 
   it('asks for every required reading', async () => {
     mockApi({});
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderWithQuery(<VitalsForm visitId="visit-1" onRecorded={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: 'Save and send to doctor' }));
@@ -108,7 +108,7 @@ describe('VitalsForm', () => {
           requestId: null,
         }),
     });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderWithQuery(<VitalsForm visitId="visit-1" onRecorded={vi.fn()} />);
 
     await fillNormal(user);
