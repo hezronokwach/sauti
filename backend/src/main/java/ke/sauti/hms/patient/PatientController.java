@@ -8,11 +8,13 @@ import java.util.UUID;
 import ke.sauti.hms.patient.dto.PatientDetailsResponse;
 import ke.sauti.hms.patient.dto.PatientSummaryResponse;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
+import ke.sauti.hms.patient.dto.UpdateContactRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +50,14 @@ public class PatientController {
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public PatientDetailsResponse register(@Valid @RequestBody RegisterPatientRequest request) {
         return PatientDetailsResponse.of(service.register(request), LocalDate.now(clock));
+    }
+
+    @PutMapping("/{id}/contact")
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public PatientDetailsResponse updateContact(
+            @PathVariable UUID id, @Valid @RequestBody UpdateContactRequest request) {
+        return PatientDetailsResponse.of(
+                service.updateContact(id, request.residence(), request.nextOfKinName()), LocalDate.now(clock));
     }
 
     @GetMapping("/{id}")

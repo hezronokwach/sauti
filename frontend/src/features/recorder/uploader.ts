@@ -30,6 +30,7 @@ export async function sendPiece(piece: StoredPiece): Promise<void> {
       'X-Piece-Sha256': await sha256Hex(piece.audio),
       'X-Piece-Duration-Ms': String(piece.durationMs),
       'X-Piece-Offset-Ms': String(piece.offsetMs),
+      ...(piece.field ? { 'X-Piece-Field': piece.field } : {}),
     },
     body: piece.audio,
   });

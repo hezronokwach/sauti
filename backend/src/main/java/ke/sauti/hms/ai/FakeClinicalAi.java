@@ -1,7 +1,9 @@
 package ke.sauti.hms.ai;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
+import ke.sauti.hms.capture.DraftField;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +33,21 @@ public class FakeClinicalAi implements ClinicalAi {
                 .toList());
         claims.add(PLANTED);
         return claims;
+    }
+
+    /** The first line said, as both value and quote. */
+    @Override
+    public Optional<FieldProposal> draftField(DraftField field, String transcript) {
+        return LINES.splitAsStream(transcript)
+                .map(String::strip)
+                .filter(line -> !line.isEmpty())
+                .findFirst()
+                .map(line -> new FieldProposal(line.replaceAll("[.!?,]+$", ""), line));
+    }
+
+    @Override
+    public String fieldPromptVersion() {
+        return "fake-field-v1";
     }
 
     @Override

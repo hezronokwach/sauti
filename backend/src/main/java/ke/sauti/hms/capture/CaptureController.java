@@ -77,11 +77,12 @@ public class CaptureController {
             @RequestHeader("X-Piece-Sha256") String sha256,
             @RequestHeader("X-Piece-Duration-Ms") int durationMs,
             @RequestHeader("X-Piece-Offset-Ms") int offsetMs,
+            @RequestHeader(name = "X-Piece-Field", required = false) DraftField field,
             @RequestBody byte[] audio,
             @AuthenticationPrincipal AuditActor staff) {
         PieceService.Received received = pieces.receive(
                 sessionId,
-                new PieceService.Upload(sequenceNo, contentType, sha256, durationMs, offsetMs),
+                new PieceService.Upload(sequenceNo, contentType, sha256, durationMs, offsetMs, field),
                 audio,
                 actor(staff));
         return ResponseEntity.status(received.created() ? HttpStatus.CREATED : HttpStatus.OK)

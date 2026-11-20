@@ -5,6 +5,7 @@ import { isAgreed, useConsentHistory } from '../consent/api';
 import { ConsentPanel } from '../consent/ConsentPanel';
 import type { PreferredLanguage } from '../patients/types';
 import { TranscriptPanel } from '../transcript/TranscriptPanel';
+import { setActiveRecorder } from './activeRecorder';
 import { onUploadStatus, uploader } from './background';
 import { Recorder } from './recorder';
 import type { RecorderStatus } from './recorder';
@@ -61,6 +62,7 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
       setConfirmErase(false);
       recorder.current = new Recorder(session.id, uploader, setStatus);
       await recorder.current.start();
+      setActiveRecorder(recorder.current);
     } catch (cause) {
       setError(
         cause instanceof DOMException
@@ -68,6 +70,7 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
           : errorMessage(cause),
       );
       recorder.current = null;
+      setActiveRecorder(null);
       setStatus({ state: 'idle', elapsedMs: 0, level: 0 });
     }
   };
@@ -76,6 +79,7 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
     const active = recorder.current;
     const id = sessionId.current;
     recorder.current = null;
+    setActiveRecorder(null);
     if (!active || !id) {
       return;
     }

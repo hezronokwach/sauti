@@ -86,6 +86,25 @@ public class TranscriptService {
                 .toList();
     }
 
+    /** A tagged piece's transcript, for drafting its field; empty when the piece or recording was erased. */
+    @Transactional(readOnly = true)
+    public java.util.Optional<PieceTranscript> pieceTranscript(UUID pieceId) {
+        AudioPiece piece = pieces.findById(pieceId).orElseThrow(() -> new NotFoundException("No such piece"));
+        CaptureSession session = load(piece.getSessionId());
+        if (piece.getFieldTag() == null
+                || piece.getStatus() == AudioPieceStatus.ERASED
+                || session.getStatus() == CaptureStatus.ERASED) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(new PieceTranscript(
+                session.getVisitId(),
+                session.getId(),
+                session.getStartedBy(),
+                pieceId,
+                piece.getFieldTag(),
+                segments.findByPieceIdOrderByOrderNoAsc(pieceId)));
+    }
+
     /** The piece playing at a moment of the recording, decrypted. Every play is access-logged. */
     public Audio audioAt(UUID sessionId, int atMs, VisitService.Actor actor) {
         CaptureSession session = load(sessionId);

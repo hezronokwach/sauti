@@ -3,6 +3,9 @@
  * tab loses nothing: the uploader picks them up again when the page opens.
  */
 
+/** Reception fields that can be drafted from speech; identity fields never are. */
+export type DraftField = 'REASON_FOR_VISIT' | 'RESIDENCE' | 'NEXT_OF_KIN_NAME';
+
 export interface StoredPiece {
   sessionId: string;
   sequenceNo: number;
@@ -10,6 +13,8 @@ export interface StoredPiece {
   mimeType: string;
   durationMs: number;
   offsetMs: number;
+  /** The reception field the piece was recorded for, if any (voice drafts). */
+  field?: DraftField;
   /** When it was recorded (epoch ms); pieces older than a day are deleted. */
   createdAt: number;
 }

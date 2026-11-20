@@ -104,6 +104,7 @@ public class SummaryService {
 
         if (drafts == null) {
             AiRequest failed = requests.save(new AiRequest(
+                    AiRequest.SUMMARY,
                     visitId,
                     actor.staffId(),
                     ai.model(),
@@ -125,6 +126,7 @@ public class SummaryService {
                 .map(d -> new CheckedClaim(d, checker.check(d.text(), d.quote())))
                 .toList();
         AiRequest saved = requests.save(new AiRequest(
+                AiRequest.SUMMARY,
                 visitId,
                 actor.staffId(),
                 ai.model(),

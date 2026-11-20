@@ -42,6 +42,11 @@ public class AudioPiece extends BaseEntity {
     @Column(nullable = false, length = 20)
     private AudioPieceStatus status = AudioPieceStatus.STORED;
 
+    /** The reception field this piece was recorded for, if any; its transcript drafts that field. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "field_tag", length = 30, updatable = false)
+    private DraftField fieldTag;
+
     protected AudioPiece() {
         // for JPA
     }
@@ -65,6 +70,14 @@ public class AudioPiece extends BaseEntity {
 
     void markStatus(AudioPieceStatus next) {
         this.status = next;
+    }
+
+    void tagField(DraftField field) {
+        this.fieldTag = field;
+    }
+
+    public DraftField getFieldTag() {
+        return fieldTag;
     }
 
     public UUID getSessionId() {

@@ -33,7 +33,7 @@ public class Visit extends BaseEntity {
     private VisitStatus status;
 
     @Convert(converter = EncryptedStringConverter.class)
-    @Column(name = "reason_for_visit", updatable = false)
+    @Column(name = "reason_for_visit")
     private String reasonForVisit;
 
     @Column(name = "queue_number", nullable = false, updatable = false)
@@ -41,6 +41,12 @@ public class Visit extends BaseEntity {
 
     @Column(name = "assigned_doctor_id")
     private UUID assignedDoctorId;
+
+    @Column(name = "reason_confirmed_by")
+    private UUID reasonConfirmedBy;
+
+    @Column(name = "reason_confirmed_at")
+    private Instant reasonConfirmedAt;
 
     @Column(name = "arrived_at", nullable = false, updatable = false)
     private Instant arrivedAt;
@@ -96,6 +102,22 @@ public class Visit extends BaseEntity {
     /** Clinical text: read only through the access policy (issue 18). */
     String getReasonForVisit() {
         return reasonForVisit;
+    }
+
+    /** A changed reason needs the nurse's confirmation again. */
+    void changeReason(String reason) {
+        this.reasonForVisit = reason;
+        this.reasonConfirmedBy = null;
+        this.reasonConfirmedAt = null;
+    }
+
+    void confirmReason(UUID nurseId, Instant at) {
+        this.reasonConfirmedBy = nurseId;
+        this.reasonConfirmedAt = at;
+    }
+
+    public boolean isReasonConfirmed() {
+        return reasonConfirmedBy != null;
     }
 
     public int getQueueNumber() {

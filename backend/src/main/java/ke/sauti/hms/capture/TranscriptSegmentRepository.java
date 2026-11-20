@@ -11,6 +11,8 @@ public interface TranscriptSegmentRepository extends JpaRepository<TranscriptSeg
 
     List<TranscriptSegment> findBySessionIdOrderByOrderNoAsc(UUID sessionId);
 
+    List<TranscriptSegment> findByPieceIdOrderByOrderNoAsc(UUID pieceId);
+
     /** Segments before a given position, newest first: the context for the next piece. */
     List<TranscriptSegment> findTop5BySessionIdAndOrderNoLessThanOrderByOrderNoDesc(UUID sessionId, int orderNo);
 

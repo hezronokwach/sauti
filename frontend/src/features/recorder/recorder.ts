@@ -1,5 +1,6 @@
 import { PieceCutter, TICK_MS, quietLevel } from './cutting';
 import { savePiece } from './pieceStore';
+import type { DraftField } from './pieceStore';
 import type { Uploader } from './uploader';
 
 /** What the recorder reports to the screen. */
@@ -49,6 +50,8 @@ export class Recorder {
   private nextSequence = 0;
   private elapsedMs = 0;
   private pieceStartMs = 0;
+  /** The field reception is on; the current piece is tagged with it. */
+  private field: DraftField | null = null;
   private saving: Promise<void>[] = [];
   private status: RecorderStatus = { state: 'idle', elapsedMs: 0, level: 0 };
 
@@ -88,6 +91,26 @@ export class Recorder {
     }, TICK_MS);
   }
 
+  /**
+   * Reception moved to another field: the current piece ends here, tagged with the field it
+   * was recorded for, and the next one is tagged with the new field.
+   */
+  cut(field: DraftField | null): void {
+    if (field === this.field) {
+      return;
+    }
+    if (!this.cutter || !this.current) {
+      this.field = field;
+      return;
+    }
+    const last = this.cutter.finish();
+    const finished = this.current;
+    const finishedField = this.field;
+    this.current = this.newRecorder();
+    this.field = field;
+    this.finishPiece(finished, last.keep, last.durationMs, finishedField);
+  }
+
   /** Stops recording, saves the last piece if it held speech, and returns how many pieces were kept. */
   async stop(): Promise<number> {
     if (this.interval) {
@@ -97,7 +120,7 @@ export class Recorder {
     this.report({ state: 'stopping' });
     if (this.current && this.cutter) {
       const last = this.cutter.finish();
-      this.finishPiece(this.current, last.keep, last.durationMs);
+      this.finishPiece(this.current, last.keep, last.durationMs, this.field);
       this.current = null;
     }
     await Promise.all(this.saving);
@@ -132,7 +155,7 @@ export class Recorder {
       // Start the next piece before stopping this one, so no audio falls between them.
       const finished = this.current;
       this.current = this.newRecorder();
-      this.finishPiece(finished, decision.keep, durationMs);
+      this.finishPiece(finished, decision.keep, durationMs, this.field);
     }
   }
 
@@ -149,7 +172,12 @@ export class Recorder {
   }
 
   /** Stops a piece's recorder and, if it held speech, saves the complete file it produces. */
-  private finishPiece(recorder: MediaRecorder, keep: boolean, durationMs: number) {
+  private finishPiece(
+    recorder: MediaRecorder,
+    keep: boolean,
+    durationMs: number,
+    field: DraftField | null,
+  ) {
     const offsetMs = this.pieceStartMs;
     this.pieceStartMs += durationMs;
     const sequenceNo = keep ? this.nextSequence++ : -1;
@@ -173,6 +201,7 @@ export class Recorder {
           mimeType: type,
           durationMs,
           offsetMs,
+          ...(field ? { field } : {}),
           createdAt: Date.now(),
         }).then(() => {
           this.uploader.wake();

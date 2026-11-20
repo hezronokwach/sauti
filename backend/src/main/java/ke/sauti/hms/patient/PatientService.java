@@ -158,6 +158,18 @@ public class PatientService {
         return saved;
     }
 
+    /** Reception sets where the patient lives and who to contact, typed or confirmed from a voice draft. */
+    public Patient updateContact(UUID id, String residence, String nextOfKinName) {
+        Patient patient = repository.findById(id).orElseThrow(() -> new NotFoundException("No such patient"));
+        patient.setDetails(
+                patient.getShaNumber(),
+                blankToNull(residence),
+                blankToNull(nextOfKinName),
+                patient.getNextOfKinPhone());
+        audit.record(AuditAction.PATIENT_CONTACT_CHANGED, PATIENT, id, id, null, Map.of());
+        return patient;
+    }
+
     @Transactional(readOnly = true)
     public Patient get(UUID id) {
         return repository.findById(id).orElseThrow(() -> new NotFoundException("No such patient"));

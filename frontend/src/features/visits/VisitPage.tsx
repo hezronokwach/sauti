@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiFetch, errorMessage } from '../../api/client';
 import { ROLE_HOME } from '../auth/roles';
 import { useCurrentStaff } from '../auth/session';
+import { ReasonConfirm } from '../drafts/ReasonConfirm';
+import { VoiceFields } from '../drafts/VoiceFields';
 import { DoctorWorkspace } from '../notes/DoctorWorkspace';
 import type { PatientDetailsResponse } from '../patients/types';
 import { RecordingPanel } from '../recorder/RecordingPanel';
@@ -64,7 +66,13 @@ export function VisitPage() {
                 <VitalsSummary visitId={visitId} />
               )}
               <AllergyList patientId={visit.data.patientId} />
+              {staff.role === 'NURSE' ? <ReasonConfirm visitId={visitId} /> : null}
             </div>
+          ) : null}
+          {staff.role === 'RECEPTIONIST' &&
+          visit.data.status !== 'DONE' &&
+          visit.data.status !== 'CANCELLED' ? (
+            <VoiceFields visitId={visitId} patient={patient.data} />
           ) : null}
           {staff.role === 'DOCTOR' ? (
             <div className="columns">
