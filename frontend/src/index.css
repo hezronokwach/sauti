@@ -14,3 +14,91 @@ main {
   margin: 0 auto;
   padding: 2rem 1rem;
 }
+
+/* Logged-in frame */
+.app-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #d9e2ec;
+}
+
+.app-name {
+  font-weight: 600;
+}
+
+.role {
+  color: #52606d;
+  font-size: 0.875rem;
+}
+
+/* Forms */
+main.narrow {
+  max-width: 26rem;
+}
+
+form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+input {
+  font: inherit;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.375rem;
+}
+
+input[aria-invalid='true'] {
+  border-color: #ba2525;
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid #1f2933;
+  border-radius: 0.375rem;
+  background: #1f2933;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.app-header button {
+  background: transparent;
+  color: inherit;
+}
+
+.field-error,
+[role='alert'] {
+  color: #ba2525;
+  margin: 0;
+}
+
+.notice {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  background: #fff8e1;
+}
+
+.secret {
+  font-size: 1.125rem;
+  letter-spacing: 0.05em;
+}
+
+.quiet {
+  margin-top: 2rem;
+  color: #52606d;
+  font-size: 0.875rem;
+}
