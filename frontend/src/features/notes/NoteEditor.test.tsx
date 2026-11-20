@@ -167,6 +167,43 @@ describe('NoteEditor', () => {
     expect(screen.getByLabelText('Authenticator code')).toHaveValue('');
   });
 
+  it('does not sign when the latest typing could not be saved', async () => {
+    const signs: unknown[] = [];
+    mockApi({
+      'PUT /api/visits/visit-1/note': () =>
+        jsonResponse(503, {
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'A service is unavailable; try again shortly',
+          fieldErrors: [],
+          requestId: null,
+        }),
+      'POST /api/visits/visit-1/note/sign': (init) => {
+        signs.push(bodyOf(init));
+        return jsonResponse(200, note({ status: 'SIGNED' }));
+      },
+    });
+    renderWithQuery(
+      <NoteEditor
+        visitId="visit-1"
+        initial={note({ assessment: 'Malaria', plan: 'AL' })}
+        onSigned={vi.fn()}
+      />,
+    );
+
+    type('Plan', 'AL for 3 days');
+    fireEvent.click(screen.getByRole('button', { name: 'Sign...' }));
+    type('Authenticator code', '123456');
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Sign note' }));
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    expect(
+      screen.getByText('The note could not be saved, so it was not signed. Try again.'),
+    ).toBeInTheDocument();
+    expect(signs).toHaveLength(0);
+  });
+
   it('asks for the assessment and plan before signing, without calling the server', async () => {
     const fetchMock = mockApi({});
     renderWithQuery(<NoteEditor visitId="visit-1" initial={note()} onSigned={vi.fn()} />);

@@ -20,6 +20,8 @@ export interface NoteDraft {
   edit: (name: SectionName, value: string) => void;
   /** Saves any unsaved typing now; resolves false if it could not be saved. */
   saveNow: () => Promise<boolean>;
+  /** Whether a 409 has stopped saving until the doctor reloads. */
+  inConflict: () => boolean;
   /** Replaces the editor's text with the server's, after a conflict. */
   reload: (note: NoteResponse | null) => void;
 }
@@ -150,6 +152,7 @@ export function useNoteDraft(visitId: string, initial: NoteResponse | null): Not
     state,
     error,
     version: () => versionRef.current,
+    inConflict: () => conflict.current,
     edit,
     saveNow,
     reload,

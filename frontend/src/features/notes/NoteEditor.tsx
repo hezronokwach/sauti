@@ -58,6 +58,10 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
     setBusy(true);
     try {
       if (!(await draft.saveNow())) {
+        // A conflict has its own warning above; anything else is said here.
+        if (!draft.inConflict()) {
+          setSignError('The note could not be saved, so it was not signed. Try again.');
+        }
         return;
       }
       const version = draft.version();
