@@ -104,6 +104,12 @@ public class SecurityConfiguration {
                                         "/api/visits/*/captures",
                                         "/api/captures/**")
                                 .hasAnyRole("RECEPTIONIST", "NURSE", "DOCTOR")
+                                .requestMatchers(HttpMethod.GET, "/api/visits/*/note")
+                                .hasAnyRole("NURSE", "DOCTOR")
+                                .requestMatchers("/api/visits/*/note", "/api/visits/*/note/**")
+                                .hasRole("DOCTOR")
+                                .requestMatchers(HttpMethod.GET, "/api/patients/*/history")
+                                .hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.POST, "/api/visits/*/vitals")
                                 .hasRole("NURSE")
                                 .requestMatchers(HttpMethod.GET, "/api/visits/*/vitals")
