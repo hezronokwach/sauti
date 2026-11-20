@@ -213,3 +213,29 @@ textarea {
   color: #8d2b0b;
   text-transform: uppercase;
 }
+
+/* Notes */
+button.secondary {
+  background: transparent;
+  color: #1f2933;
+  border: 1px solid #9aa5b1;
+}
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.note-text {
+  white-space: pre-wrap;
+}
+
+.save-state {
+  margin-top: 0;
+}
+
+.history {
+  padding-left: 1rem;
+  display: grid;
+  gap: 1rem;
+}
