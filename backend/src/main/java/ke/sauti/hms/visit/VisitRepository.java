@@ -29,16 +29,4 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
     Optional<Visit> findOpenByPatientId(@Param("patientId") UUID patientId);
 
     List<Visit> findByVisitDateAndStatusOrderByQueueNumberAsc(LocalDate visitDate, VisitStatus status);
-
-    /**
-     * Takes the next queue number for the day in one statement: the first visit of the
-     * day creates the counter row, later ones increment it under the row lock PostgreSQL
-     * takes for the update, so no two visits get the same number.
-     */
-    @Query(
-            value = "insert into queue_counter (day, last_number) values (:day, 1)"
-                    + " on conflict (day) do update set last_number = queue_counter.last_number + 1"
-                    + " returning last_number",
-            nativeQuery = true)
-    int nextQueueNumber(@Param("day") LocalDate day);
 }

@@ -30,6 +30,7 @@ public class VisitService {
     private static final String VISIT = Visit.class.getSimpleName();
 
     private final VisitRepository visits;
+    private final QueueNumbers queueNumbers;
     private final VisitStatusChangeRepository history;
     private final CareAssignmentRepository assignments;
     private final PatientService patients;
@@ -40,6 +41,7 @@ public class VisitService {
 
     public VisitService(
             VisitRepository visits,
+            QueueNumbers queueNumbers,
             VisitStatusChangeRepository history,
             CareAssignmentRepository assignments,
             PatientService patients,
@@ -48,6 +50,7 @@ public class VisitService {
             Clock clock,
             AccessPolicy accessPolicy) {
         this.visits = visits;
+        this.queueNumbers = queueNumbers;
         this.history = history;
         this.assignments = assignments;
         this.patients = patients;
@@ -73,7 +76,7 @@ public class VisitService {
             throw new ConflictException("This patient already has a visit in progress");
         }
         Instant now = clock.instant();
-        int queueNumber = visits.nextQueueNumber(facilityTime.today());
+        int queueNumber = queueNumbers.next(facilityTime.today());
         String reason = StringUtils.hasText(reasonForVisit) ? reasonForVisit.trim() : null;
         Visit visit = visits.saveAndFlush(new Visit(patientId, facilityTime.today(), queueNumber, reason, now));
 
