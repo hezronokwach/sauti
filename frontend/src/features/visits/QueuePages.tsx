@@ -1,6 +1,9 @@
 import { QueueList } from './QueueList';
 
-/** The nurse's screen: take the next patient, then send them on to the doctor. */
+/**
+ * The nurse's screen: take the next patient, then open them to take vitals; saving the
+ * vitals sends the patient on to the doctor.
+ */
 export function TriagePage() {
   return (
     <main className="wide">
@@ -11,13 +14,7 @@ export function TriagePage() {
           status="WAITING_TRIAGE"
           action={{ kind: 'take', label: 'Take' }}
         />
-        <QueueList
-          title="In triage"
-          status="IN_TRIAGE"
-          action={{ kind: 'move', label: 'Send to doctor', to: 'WAITING_DOCTOR' }}
-          emptyText="Nobody in triage."
-          openable
-        />
+        <QueueList title="In triage" status="IN_TRIAGE" emptyText="Nobody in triage." openable />
       </div>
     </main>
   );

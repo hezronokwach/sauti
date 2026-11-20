@@ -100,7 +100,9 @@ class AccessRulesTest {
             new Rule(HttpMethod.PUT, "/api/captures/" + UUID.randomUUID() + "/pieces/0", ASK_CONSENT),
             new Rule(HttpMethod.GET, "/api/captures/" + UUID.randomUUID() + "/segments", ASK_CONSENT),
             new Rule(HttpMethod.GET, "/api/captures/" + UUID.randomUUID() + "/audio?atMs=0", ASK_CONSENT),
-            new Rule(HttpMethod.POST, "/api/captures/" + UUID.randomUUID() + "/erase", ASK_CONSENT));
+            new Rule(HttpMethod.POST, "/api/captures/" + UUID.randomUUID() + "/erase", ASK_CONSENT),
+            new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/vitals", EnumSet.of(StaffRole.NURSE)),
+            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/vitals", CLINICIANS));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(
