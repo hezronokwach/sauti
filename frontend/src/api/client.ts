@@ -107,6 +107,15 @@ export function apiPost<T>(path: string, body?: unknown): Promise<T> {
   });
 }
 
+/** PUTs a JSON body (see {@link apiFetch}). */
+export function apiPut<T>(path: string, body: unknown): Promise<T> {
+  return apiFetch<T>(path, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
 async function send(path: string, init: RequestInit): Promise<Response> {
   // Headers accepts every HeadersInit form (object, array of pairs, Headers).
   const headers = new Headers(init.headers);

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiFetch, errorMessage } from '../../api/client';
 import { ROLE_HOME } from '../auth/roles';
 import { useCurrentStaff } from '../auth/session';
+import { DoctorWorkspace } from '../notes/DoctorWorkspace';
 import type { PatientDetailsResponse } from '../patients/types';
 import { RecordingPanel } from '../recorder/RecordingPanel';
 import { AllergyList } from '../triage/AllergyList';
@@ -11,8 +12,8 @@ import { VitalsSummary } from '../triage/VitalsSummary';
 import type { VisitResponse } from './types';
 
 /**
- * One visit: who the patient is, vitals with the allergy list at triage, and recording with
- * consent. The note editor (issue 33) joins this page.
+ * One visit: who the patient is, vitals with the allergy list at triage, recording with
+ * consent and the live transcript, and for the doctor the note beside the transcript.
  */
 export function VisitPage() {
   const { visitId = '' } = useParams();
@@ -65,11 +66,22 @@ export function VisitPage() {
               <AllergyList patientId={visit.data.patientId} />
             </div>
           ) : null}
-          <RecordingPanel
-            visitId={visitId}
-            purpose={staff.role === 'RECEPTIONIST' ? 'RECORD_RECEPTION' : 'RECORD_CONSULTATION'}
-            language={patient.data.preferredLanguage}
-          />
+          {staff.role === 'DOCTOR' ? (
+            <div className="columns">
+              <DoctorWorkspace visitId={visitId} patientId={visit.data.patientId} />
+              <RecordingPanel
+                visitId={visitId}
+                purpose="RECORD_CONSULTATION"
+                language={patient.data.preferredLanguage}
+              />
+            </div>
+          ) : (
+            <RecordingPanel
+              visitId={visitId}
+              purpose={staff.role === 'RECEPTIONIST' ? 'RECORD_RECEPTION' : 'RECORD_CONSULTATION'}
+              language={patient.data.preferredLanguage}
+            />
+          )}
         </>
       ) : (
         !error && <p role="status">Loading...</p>
