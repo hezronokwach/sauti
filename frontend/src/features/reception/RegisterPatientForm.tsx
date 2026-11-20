@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { errorMessage } from '../../api/client';
+import { lookupRegistry } from '../registry/api';
 import { duplicateDetails, useRegisterPatient } from '../patients/api';
 import type { PatientSummaryResponse, RegisterPatientRequest } from '../patients/types';
 
@@ -81,6 +83,38 @@ export function RegisterPatientForm({
   });
   const register = useRegisterPatient();
   const duplicates = duplicateDetails(register.error);
+  const [fromRegistry, setFromRegistry] = useState<(keyof Form)[]>([]);
+  const [lookupNote, setLookupNote] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
+
+  /** A registry hit fills name, date of birth and sex; a miss or no answer means typing them. */
+  const lookUp = async () => {
+    const id = (form.getValues('nationalId') ?? '').trim();
+    if (!/^\d{6,9}$/.test(id)) {
+      setLookupNote('Type the national ID (6 to 9 digits) first.');
+      return;
+    }
+    setLookingUp(true);
+    setLookupNote(null);
+    try {
+      const person = await lookupRegistry(id);
+      if (person.found && person.fullName && person.dateOfBirth && person.sex) {
+        form.setValue('fullName', person.fullName, { shouldValidate: true });
+        form.setValue('dateOfBirth', person.dateOfBirth, { shouldValidate: true });
+        form.setValue('sex', person.sex, { shouldValidate: true });
+        setFromRegistry(['fullName', 'dateOfBirth', 'sex']);
+        setLookupNote('Found in the registry. Check the details with the patient.');
+      } else {
+        setFromRegistry([]);
+        setLookupNote('Not in the registry: type the details.');
+      }
+    } catch (failure) {
+      setFromRegistry([]);
+      setLookupNote(errorMessage(failure));
+    } finally {
+      setLookingUp(false);
+    }
+  };
   const { errors } = form.formState;
 
   const submit = (confirmNewPatient: boolean) =>
@@ -95,6 +129,7 @@ export function RegisterPatientForm({
         {patientEntered.includes(name) ? (
           <span className="patient-entered"> patient-entered, check with the patient</span>
         ) : null}
+        {fromRegistry.includes(name) ? <span className="quiet"> from the registry</span> : null}
       </label>
       {input}
       {errors[name] ? (
@@ -119,6 +154,24 @@ export function RegisterPatientForm({
           void submit(false)(event);
         }}
       >
+        {field(
+          'nationalId',
+          'National ID (optional)',
+          <input inputMode="numeric" {...invalid('nationalId')} {...form.register('nationalId')} />,
+        )}
+        <div className="actions">
+          <button
+            type="button"
+            className="secondary"
+            disabled={lookingUp}
+            onClick={() => {
+              void lookUp();
+            }}
+          >
+            {lookingUp ? 'Looking up...' : 'Look up in the registry'}
+          </button>
+        </div>
+        {lookupNote ? <p role="status">{lookupNote}</p> : null}
         {field(
           'fullName',
           'Full name',
@@ -145,11 +198,6 @@ export function RegisterPatientForm({
           'phone',
           'Phone (optional)',
           <input type="tel" inputMode="tel" {...invalid('phone')} {...form.register('phone')} />,
-        )}
-        {field(
-          'nationalId',
-          'National ID (optional)',
-          <input inputMode="numeric" {...invalid('nationalId')} {...form.register('nationalId')} />,
         )}
         {field(
           'payerType',

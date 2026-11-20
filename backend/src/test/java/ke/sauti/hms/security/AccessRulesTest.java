@@ -124,7 +124,15 @@ class AccessRulesTest {
                     EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(HttpMethod.POST, "/api/queue/tickets/" + UUID.randomUUID() + "/attend", CLINICIANS),
             new Rule(HttpMethod.GET, "/api/queue/tickets", ASK_CONSENT),
-            new Rule(HttpMethod.GET, "/api/pre-registrations/P-001", EnumSet.of(StaffRole.RECEPTIONIST)));
+            new Rule(HttpMethod.GET, "/api/pre-registrations/P-001", EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(
+                    HttpMethod.GET,
+                    "/api/registry/lookup?idType=NATIONAL_ID&idNumber=30000001",
+                    EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(
+                    HttpMethod.GET,
+                    "/api/patients/" + UUID.randomUUID() + "/eligibility",
+                    EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.CASHIER)));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(

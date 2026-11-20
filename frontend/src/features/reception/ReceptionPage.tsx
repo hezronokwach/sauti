@@ -3,6 +3,7 @@ import { errorMessage } from '../../api/client';
 import { MIN_QUERY, usePatientSearch } from '../patients/api';
 import type { PatientSummaryResponse } from '../patients/types';
 import { TicketDesk } from '../queue/TicketDesk';
+import { EligibilityBadge } from '../registry/EligibilityBadge';
 import type { TicketResponse } from '../queue/types';
 import { QueueList } from '../visits/QueueList';
 import { useChangeVisitStatus, useOpenVisit } from '../visits/api';
@@ -174,6 +175,7 @@ function OpenVisitPanel({ patient, ticket, initialReason, onOpened, onDone }: Op
       <p>
         <strong>{patient.fullName}</strong> {patient.patientNumber}, {patient.ageYears} years
       </p>
+      <EligibilityBadge patientId={patient.id} />
       {ticket && opened === null ? <p className="quiet">For ticket {ticket.code}</p> : null}
       {opened === null ? (
         <>

@@ -272,6 +272,26 @@ textarea {
   color: #1f6f43;
 }
 
+/* Eligibility */
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: #e4e7eb;
+  font-size: 0.875rem;
+}
+
+.badge-eligible {
+  background: #e3f9e5;
+  color: #1f6f43;
+}
+
+.badge-ineligible,
+.badge-not_found {
+  background: #fff3c4;
+  color: #8a5a00;
+}
+
 /* Pre-registration */
 .patient-entered {
   font-size: 0.8125rem;
