@@ -72,6 +72,20 @@ public class TranscriptService {
                 sessionId, afterOrderNo == null ? -1 : afterOrderNo);
     }
 
+    /**
+     * Every line of a visit's consultation recordings that were not erased, in order, for
+     * the AI summary. The caller has already checked access and consent.
+     */
+    @Transactional(readOnly = true)
+    public List<TranscriptSegment> consultationLines(UUID visitId) {
+        return sessions
+                .findByVisitIdAndPurposeAndStatusNotOrderByStartedAtAsc(
+                        visitId, ConsentPurpose.RECORD_CONSULTATION, CaptureStatus.ERASED)
+                .stream()
+                .flatMap(session -> segments.findBySessionIdOrderByOrderNoAsc(session.getId()).stream())
+                .toList();
+    }
+
     /** The piece playing at a moment of the recording, decrypted. Every play is access-logged. */
     public Audio audioAt(UUID sessionId, int atMs, VisitService.Actor actor) {
         CaptureSession session = load(sessionId);

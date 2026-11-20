@@ -108,6 +108,8 @@ public class SecurityConfiguration {
                                 .hasAnyRole("NURSE", "DOCTOR")
                                 .requestMatchers("/api/visits/*/note", "/api/visits/*/note/**")
                                 .hasRole("DOCTOR")
+                                .requestMatchers(HttpMethod.POST, "/api/visits/*/summary")
+                                .hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.GET, "/api/patients/*/history")
                                 .hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.POST, "/api/visits/*/vitals")
