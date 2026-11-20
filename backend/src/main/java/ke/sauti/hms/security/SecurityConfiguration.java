@@ -92,6 +92,12 @@ public class SecurityConfiguration {
                                 // nothing from validation errors; @PreAuthorize repeats it.
                                 .requestMatchers("/api/admin/**")
                                 .hasRole("ADMIN")
+                                .requestMatchers("/api/patients/*/allergies", "/api/patients/*/allergies/**")
+                                .hasAnyRole("NURSE", "DOCTOR")
+                                .requestMatchers(HttpMethod.POST, "/api/patients")
+                                .hasRole("RECEPTIONIST")
+                                .requestMatchers(HttpMethod.GET, "/api/patients", "/api/patients/*")
+                                .hasAnyRole("RECEPTIONIST", "NURSE", "DOCTOR", "CASHIER")
                                 .anyRequest()
                                 .authenticated())
                 .securityContext(context -> context.securityContextRepository(contextRepository))
