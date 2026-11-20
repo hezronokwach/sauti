@@ -26,7 +26,7 @@ class MigrationsTest {
         List<String> versions = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
+        assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13");
     }
 
     @Test
@@ -55,6 +55,7 @@ class MigrationsTest {
                         "job",
                         "vitals",
                         "clinical_note",
-                        "note_addendum");
+                        "note_addendum",
+                        "ai_request");
     }
 }
