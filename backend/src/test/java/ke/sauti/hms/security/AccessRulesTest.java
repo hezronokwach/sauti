@@ -115,13 +115,22 @@ class AccessRulesTest {
             new Rule(
                     HttpMethod.POST,
                     "/api/visits/" + UUID.randomUUID() + "/summary/" + UUID.randomUUID() + "/accept",
-                    EnumSet.of(StaffRole.DOCTOR)));
+                    EnumSet.of(StaffRole.DOCTOR)),
+            new Rule(HttpMethod.POST, "/api/queue/tickets", EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(HttpMethod.POST, "/api/queue/tickets/call-next", EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/queue/tickets/" + UUID.randomUUID() + "/cancel",
+                    EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(HttpMethod.POST, "/api/queue/tickets/" + UUID.randomUUID() + "/attend", CLINICIANS),
+            new Rule(HttpMethod.GET, "/api/queue/tickets", ASK_CONSENT));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(
             new Rule(HttpMethod.POST, "/api/auth/login", ANY_ROLE),
             new Rule(HttpMethod.POST, "/api/auth/code", ANY_ROLE),
-            new Rule(HttpMethod.GET, "/actuator/health", ANY_ROLE));
+            new Rule(HttpMethod.GET, "/actuator/health", ANY_ROLE),
+            new Rule(HttpMethod.GET, "/api/public/queue-board", ANY_ROLE));
 
     @Autowired
     private MockMvc mvc;

@@ -88,6 +88,9 @@ public class SecurityConfiguration {
                                 .permitAll()
                                 .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                                 .permitAll()
+                                // The waiting-area display: ticket codes only, no login.
+                                .requestMatchers(HttpMethod.GET, "/api/public/queue-board")
+                                .permitAll()
                                 // Checked before the request body is read, so a non-admin learns
                                 // nothing from validation errors; @PreAuthorize repeats it.
                                 .requestMatchers("/api/admin/**")
@@ -108,6 +111,12 @@ public class SecurityConfiguration {
                                 .hasAnyRole("NURSE", "DOCTOR")
                                 .requestMatchers("/api/visits/*/note", "/api/visits/*/note/**")
                                 .hasRole("DOCTOR")
+                                .requestMatchers(HttpMethod.GET, "/api/queue/tickets")
+                                .hasAnyRole("RECEPTIONIST", "NURSE", "DOCTOR")
+                                .requestMatchers(HttpMethod.POST, "/api/queue/tickets/*/attend")
+                                .hasAnyRole("NURSE", "DOCTOR")
+                                .requestMatchers("/api/queue/**")
+                                .hasRole("RECEPTIONIST")
                                 .requestMatchers(HttpMethod.POST, "/api/visits/*/summary", "/api/visits/*/summary/**")
                                 .hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.GET, "/api/patients/*/history")
