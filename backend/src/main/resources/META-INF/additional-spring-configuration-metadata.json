@@ -137,6 +137,42 @@
       "type": "java.time.Duration",
       "description": "How long to wait for a transcription.",
       "sourceType": "ke.sauti.hms.capture.GroqProperties"
+    },
+    {
+      "name": "sauti.ai.provider",
+      "type": "java.lang.String",
+      "description": "Which clinical AI to use: fake (development and tests) or groq.",
+      "defaultValue": "fake"
+    },
+    {
+      "name": "sauti.ai.groq.base-url",
+      "type": "java.lang.String",
+      "description": "Groq's OpenAI-compatible API root for the clinical AI.",
+      "sourceType": "ke.sauti.hms.ai.AiProperties"
+    },
+    {
+      "name": "sauti.ai.groq.api-key",
+      "type": "java.lang.String",
+      "description": "Groq API key. Set through GROQ_API_KEY.",
+      "sourceType": "ke.sauti.hms.ai.AiProperties"
+    },
+    {
+      "name": "sauti.ai.groq.model",
+      "type": "java.lang.String",
+      "description": "The pinned chat model.",
+      "sourceType": "ke.sauti.hms.ai.AiProperties"
+    },
+    {
+      "name": "sauti.ai.groq.connect-timeout",
+      "type": "java.time.Duration",
+      "description": "Connection timeout for the clinical AI.",
+      "sourceType": "ke.sauti.hms.ai.AiProperties"
+    },
+    {
+      "name": "sauti.ai.groq.read-timeout",
+      "type": "java.time.Duration",
+      "description": "How long to wait for a summary (20 seconds).",
+      "sourceType": "ke.sauti.hms.ai.AiProperties"
     }
   ]
 }

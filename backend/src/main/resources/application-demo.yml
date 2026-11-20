@@ -23,3 +23,5 @@ sauti:
     - GROQ_API_KEY
   transcription:
     provider: groq
+  ai:
+    provider: groq
