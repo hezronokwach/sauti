@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * reception desks: the next number in a lane, and choosing the next ticket to call.
  */
 @Component
-class TicketSql {
+public class TicketSql {
 
     private static final String NEXT_NUMBER = "insert into queue_ticket_counter (day, lane, last_number)"
             + " values (?, ?, 1)"
