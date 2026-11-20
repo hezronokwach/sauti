@@ -1,5 +1,6 @@
 package ke.sauti.hms.security;
 
+import java.io.Serial;
 import ke.sauti.hms.common.error.ApiException;
 import ke.sauti.hms.common.error.ErrorCode;
 
@@ -9,6 +10,7 @@ import ke.sauti.hms.common.error.ErrorCode;
  */
 public class LoginException extends ApiException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public LoginException(ErrorCode errorCode) {
