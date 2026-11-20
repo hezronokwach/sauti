@@ -82,7 +82,39 @@ public class AiRequest extends BaseEntity {
         return visitId;
     }
 
+    public UUID getRequestedBy() {
+        return requestedBy;
+    }
+
+    public String getKind() {
+        return kind;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public String getPromptVersion() {
+        return promptVersion;
+    }
+
     public String getStatus() {
         return status;
+    }
+
+    public String getClaims() {
+        return claims;
+    }
+
+    public String getChecks() {
+        return checks;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public int getDurationMs() {
+        return durationMs;
     }
 }
