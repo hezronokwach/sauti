@@ -106,8 +106,6 @@ public class GroqSpeechToText implements SpeechToText {
                     .toList();
         } catch (ResourceAccessException e) {
             throw new IllegalStateException("Groq did not answer in time", e);
-        } catch (JobFailure e) {
-            throw e;
         } catch (RestClientException e) {
             // A timeout while reading the answer, or an answer that could not be read.
             throw new IllegalStateException("Groq did not answer in time or sent an unreadable answer", e);
