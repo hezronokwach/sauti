@@ -13,7 +13,9 @@ import ke.sauti.hms.common.error.ForbiddenException;
 import ke.sauti.hms.common.error.NotFoundException;
 import ke.sauti.hms.common.time.FacilityTime;
 import ke.sauti.hms.patient.PatientService;
+import ke.sauti.hms.queue.QueueTicketService;
 import ke.sauti.hms.staff.StaffRole;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -38,6 +40,7 @@ public class VisitService {
     private final FacilityTime facilityTime;
     private final Clock clock;
     private final AccessPolicy accessPolicy;
+    private final QueueTicketService tickets;
 
     public VisitService(
             VisitRepository visits,
@@ -48,7 +51,9 @@ public class VisitService {
             AuditService audit,
             FacilityTime facilityTime,
             Clock clock,
-            AccessPolicy accessPolicy) {
+            AccessPolicy accessPolicy,
+            QueueTicketService tickets) {
+        this.tickets = tickets;
         this.visits = visits;
         this.queueNumbers = queueNumbers;
         this.history = history;
@@ -68,6 +73,14 @@ public class VisitService {
      * one visit in progress.
      */
     public Visit open(UUID patientId, String reasonForVisit, Actor actor) {
+        return open(patientId, reasonForVisit, null, actor);
+    }
+
+    /**
+     * Opens a visit, optionally for the arrival ticket reception called: the visit then
+     * arrives when the ticket was issued, and the ticket is marked served.
+     */
+    public Visit open(UUID patientId, String reasonForVisit, @Nullable UUID ticketId, Actor actor) {
         if (actor.role() != StaffRole.RECEPTIONIST) {
             throw new ForbiddenException("Only reception opens visits");
         }
@@ -76,9 +89,13 @@ public class VisitService {
             throw new ConflictException("This patient already has a visit in progress");
         }
         Instant now = clock.instant();
+        Instant arrived = ticketId == null ? now : tickets.arrivalForVisit(ticketId);
         int queueNumber = queueNumbers.next(facilityTime.today());
         String reason = StringUtils.hasText(reasonForVisit) ? reasonForVisit.trim() : null;
-        Visit visit = visits.saveAndFlush(new Visit(patientId, facilityTime.today(), queueNumber, reason, now));
+        Visit visit = visits.saveAndFlush(new Visit(patientId, facilityTime.today(), queueNumber, reason, arrived));
+        if (ticketId != null) {
+            tickets.markServed(ticketId, visit.getId());
+        }
 
         history.save(new VisitStatusChange(visit.getId(), null, VisitStatus.AT_RECEPTION, actor.staffId(), now, null));
         assignments.save(new CareAssignment(visit.getId(), actor.staffId(), actor.role(), now));

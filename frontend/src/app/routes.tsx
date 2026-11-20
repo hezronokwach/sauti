@@ -5,6 +5,7 @@ import { RequireLogin } from '../features/auth/RequireLogin';
 import { ROLE_HOME } from '../features/auth/roles';
 import { SignedInLayout } from '../features/auth/SignedInLayout';
 import type { StaffRole } from '../features/auth/types';
+import { WaitingAreaPage } from '../features/queue/WaitingAreaPage';
 import { ReceptionPage } from '../features/reception/ReceptionPage';
 import { BillingPage, DoctorPage, TriagePage } from '../features/visits/QueuePages';
 import { VisitPage } from '../features/visits/VisitPage';
@@ -25,6 +26,8 @@ function page(
 export const routes: RouteObject[] = [
   { path: '/', element: <RootRedirect /> },
   { path: '/login', element: <LoginPage /> },
+  // The waiting-area screen: no login, ticket codes only.
+  { path: '/waiting-area', element: <WaitingAreaPage /> },
   {
     element: <RequireLogin forPasswordChange />,
     children: [

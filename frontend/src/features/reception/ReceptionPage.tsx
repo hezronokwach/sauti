@@ -2,18 +2,22 @@ import { useState } from 'react';
 import { errorMessage } from '../../api/client';
 import { MIN_QUERY, usePatientSearch } from '../patients/api';
 import type { PatientSummaryResponse } from '../patients/types';
+import { TicketDesk } from '../queue/TicketDesk';
+import type { TicketResponse } from '../queue/types';
 import { QueueList } from '../visits/QueueList';
 import { useChangeVisitStatus, useOpenVisit } from '../visits/api';
 import { RegisterPatientForm } from './RegisterPatientForm';
 
 /**
- * The reception desk: find or register the patient, open a visit (which goes straight to
- * the triage queue), and see today's lists.
+ * The reception desk: give arrival tickets and call the next one, find or register the
+ * patient, open a visit for the called ticket (it goes straight to the triage queue), and
+ * see today's lists.
  */
 export function ReceptionPage() {
   const [query, setQuery] = useState('');
   const [registering, setRegistering] = useState(false);
   const [patient, setPatient] = useState<PatientSummaryResponse | null>(null);
+  const [ticket, setTicket] = useState<TicketResponse | null>(null);
   const search = usePatientSearch(query);
 
   const choose = (chosen: PatientSummaryResponse) => {
@@ -77,6 +81,10 @@ export function ReceptionPage() {
           {patient ? (
             <OpenVisitPanel
               patient={patient}
+              ticket={ticket}
+              onOpened={() => {
+                setTicket(null);
+              }}
               onDone={() => {
                 setPatient(null);
                 setQuery('');
@@ -86,6 +94,7 @@ export function ReceptionPage() {
         </div>
 
         <div>
+          <TicketDesk current={ticket} onCurrent={setTicket} />
           <QueueList
             title="At reception"
             status="AT_RECEPTION"
@@ -100,10 +109,13 @@ export function ReceptionPage() {
 
 interface OpenVisitPanelProps {
   patient: PatientSummaryResponse;
+  /** The ticket being served; the visit counts its waiting time from it. */
+  ticket: TicketResponse | null;
+  onOpened: () => void;
   onDone: () => void;
 }
 
-function OpenVisitPanel({ patient, onDone }: OpenVisitPanelProps) {
+function OpenVisitPanel({ patient, ticket, onOpened, onDone }: OpenVisitPanelProps) {
   const [reason, setReason] = useState('');
   const [opened, setOpened] = useState<number | null>(null);
   const open = useOpenVisit();
@@ -112,9 +124,14 @@ function OpenVisitPanel({ patient, onDone }: OpenVisitPanelProps) {
 
   const openAndSend = () => {
     open.mutate(
-      { patientId: patient.id, reasonForVisit: reason.trim() || undefined },
+      {
+        patientId: patient.id,
+        reasonForVisit: reason.trim() || undefined,
+        ticketId: ticket?.id,
+      },
       {
         onSuccess: (visit) => {
+          onOpened();
           move.mutate(
             { visitId: visit.id, to: 'WAITING_TRIAGE' },
             {
@@ -134,6 +151,7 @@ function OpenVisitPanel({ patient, onDone }: OpenVisitPanelProps) {
       <p>
         <strong>{patient.fullName}</strong> {patient.patientNumber}, {patient.ageYears} years
       </p>
+      {ticket && opened === null ? <p className="quiet">For ticket {ticket.code}</p> : null}
       {opened === null ? (
         <>
           <label htmlFor="reason-for-visit">Reason for the visit (optional)</label>

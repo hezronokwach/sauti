@@ -52,7 +52,8 @@ public class VisitController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public VisitResponse open(@Valid @RequestBody OpenVisitRequest request, @AuthenticationPrincipal AuditActor staff) {
-        return VisitResponse.of(service.open(request.patientId(), request.reasonForVisit(), actor(staff)));
+        return VisitResponse.of(
+                service.open(request.patientId(), request.reasonForVisit(), request.ticketId(), actor(staff)));
     }
 
     /** Today's queue for one status, in queue order. */
