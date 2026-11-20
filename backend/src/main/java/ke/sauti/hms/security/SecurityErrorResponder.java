@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
@@ -17,9 +18,11 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 class SecurityErrorResponder implements AuthenticationEntryPoint, AccessDeniedHandler {
 
     private final HandlerExceptionResolver resolver;
+    private final AccessDeniedAuditor auditor;
 
-    SecurityErrorResponder(HandlerExceptionResolver resolver) {
+    SecurityErrorResponder(HandlerExceptionResolver resolver, AccessDeniedAuditor auditor) {
         this.resolver = resolver;
+        this.auditor = auditor;
     }
 
     @Override
@@ -31,6 +34,9 @@ class SecurityErrorResponder implements AuthenticationEntryPoint, AccessDeniedHa
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex)
             throws IOException {
+        if (ex instanceof CsrfException) {
+            auditor.csrfRefused();
+        }
         respond(request, response, ex, HttpServletResponse.SC_FORBIDDEN);
     }
 

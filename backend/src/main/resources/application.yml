@@ -47,6 +47,11 @@ sauti:
   # Environment variables that must be set before the app may start.
   # Each profile that talks to real services lists its own.
   required-env: []
+  first-admin:
+    # Used only while the staff table is empty; see FirstAdminSetup.
+    email: ${FIRST_ADMIN_EMAIL:}
+    password: ${FIRST_ADMIN_PASSWORD:}
+    name: ${FIRST_ADMIN_NAME:Administrator}
   crypto:
     # 32 random bytes each, Base64 (openssl rand -base64 32). Never the same key twice.
     encryption-key: ${APP_ENCRYPTION_KEY:}

@@ -24,6 +24,12 @@ public class Staff extends BaseEntity {
     /** Wrong passwords or codes in a row before the account locks. */
     public static final int MAX_FAILED_LOGINS = 5;
 
+    /** Shortest password a person may choose (the second factor is always required too). */
+    public static final int MIN_PASSWORD_LENGTH = 12;
+
+    /** Longest password accepted, which keeps hashing time bounded. */
+    public static final int MAX_PASSWORD_LENGTH = 128;
+
     /** How long a locked account stays locked. */
     public static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 

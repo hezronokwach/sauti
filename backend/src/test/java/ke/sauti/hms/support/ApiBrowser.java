@@ -3,15 +3,18 @@ package ke.sauti.hms.support;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import jakarta.servlet.http.Cookie;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 /**
  * Talks to the API the way the front end's browser does: it keeps every cookie it is
@@ -32,6 +35,26 @@ public final class ApiBrowser {
 
     public ApiBrowser(MockMvc mvc) {
         this.mvc = mvc;
+    }
+
+    /**
+     * A matching {@code XSRF-TOKEN} cookie and {@code X-XSRF-TOKEN} header, which is what
+     * the double-submit check compares, for one-off requests that skip the full flow.
+     * <p>
+     * Use this, never Spring Security's {@code csrf()} helper: that one swaps the CSRF
+     * token store inside the shared filter for a session-based one, and the swap stays
+     * for every later request in the cached test context, breaking real cookie tokens.
+     */
+    public static RequestPostProcessor validCsrfToken() {
+        return request -> {
+            String token = UUID.randomUUID().toString();
+            Cookie[] existing = request.getCookies();
+            Cookie[] cookies = existing == null ? new Cookie[1] : Arrays.copyOf(existing, existing.length + 1);
+            cookies[cookies.length - 1] = new Cookie(CSRF_COOKIE, token);
+            request.setCookies(cookies);
+            request.addHeader(CSRF_HEADER, token);
+            return request;
+        };
     }
 
     public ResultActions send(MockHttpServletRequestBuilder request) throws Exception {
