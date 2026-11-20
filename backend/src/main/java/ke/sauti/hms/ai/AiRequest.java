@@ -14,6 +14,7 @@ import ke.sauti.hms.common.persistence.BaseEntity;
 public class AiRequest extends BaseEntity {
 
     static final String SUMMARY = "SUMMARY";
+    static final String FIELD_DRAFT = "FIELD_DRAFT";
     static final String OK = "OK";
     static final String UNAVAILABLE = "UNAVAILABLE";
 
@@ -57,6 +58,7 @@ public class AiRequest extends BaseEntity {
     }
 
     AiRequest(
+            String kind,
             UUID visitId,
             UUID requestedBy,
             String model,
@@ -68,7 +70,7 @@ public class AiRequest extends BaseEntity {
             int durationMs) {
         this.visitId = visitId;
         this.requestedBy = requestedBy;
-        this.kind = SUMMARY;
+        this.kind = kind;
         this.model = model;
         this.promptVersion = promptVersion;
         this.status = status;

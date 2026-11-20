@@ -175,6 +175,49 @@ class PiecePipelineTest {
     }
 
     @Test
+    void aPieceTaggedWithAFieldIsDraftedAfterTranscription() throws Exception {
+        UUID sessionId = recording();
+        byte[] audio = audio(1);
+
+        mvc.perform(put("/api/captures/" + sessionId + "/pieces/1")
+                        .contentType("audio/webm")
+                        .header("X-Piece-Sha256", PieceService.sha256(audio))
+                        .header("X-Piece-Duration-Ms", "30000")
+                        .header("X-Piece-Offset-Ms", "30000")
+                        .header("X-Piece-Field", "REASON_FOR_VISIT")
+                        .content(audio)
+                        .with(as(nurse)))
+                .andExpect(status().isCreated());
+        worker.runOnce();
+        assertThat(jdbc.queryForObject(
+                        "select count(*) from job where type = 'DRAFT_FIELD' and status = 'QUEUED'", Long.class))
+                .isPositive();
+
+        worker.runOnce();
+        List<String> drafts = jdbc.queryForList(
+                "select field from field_draft d join audio_piece p on p.id = d.piece_id where p.session_id = ?",
+                String.class,
+                sessionId);
+        assertThat(drafts).containsExactly("REASON_FOR_VISIT");
+    }
+
+    @Test
+    void anUnknownFieldTagIsRefused() throws Exception {
+        UUID sessionId = recording();
+        byte[] audio = audio(1);
+
+        mvc.perform(put("/api/captures/" + sessionId + "/pieces/1")
+                        .contentType("audio/webm")
+                        .header("X-Piece-Sha256", PieceService.sha256(audio))
+                        .header("X-Piece-Duration-Ms", "30000")
+                        .header("X-Piece-Offset-Ms", "30000")
+                        .header("X-Piece-Field", "NATIONAL_ID")
+                        .content(audio)
+                        .with(as(nurse)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void sendingTheSamePieceAgainIsHarmless() throws Exception {
         UUID sessionId = recording();
         String first = JSON.readTree(upload(sessionId, 0)

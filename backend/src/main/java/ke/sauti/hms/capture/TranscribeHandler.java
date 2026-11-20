@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import ke.sauti.hms.jobs.JobFailure;
 import ke.sauti.hms.jobs.JobHandler;
+import ke.sauti.hms.jobs.JobQueue;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -31,6 +32,7 @@ public class TranscribeHandler implements JobHandler {
     private final SpeechToText speechToText;
     private final TransactionTemplate transaction;
     private final Clock clock;
+    private final JobQueue jobs;
 
     public TranscribeHandler(
             AudioPieceRepository pieces,
@@ -39,7 +41,8 @@ public class TranscribeHandler implements JobHandler {
             AudioStore store,
             SpeechToText speechToText,
             TransactionTemplate transaction,
-            Clock clock) {
+            Clock clock,
+            JobQueue jobs) {
         this.pieces = pieces;
         this.sessions = sessions;
         this.segments = segments;
@@ -47,6 +50,7 @@ public class TranscribeHandler implements JobHandler {
         this.speechToText = speechToText;
         this.transaction = transaction;
         this.clock = clock;
+        this.jobs = jobs;
     }
 
     @Override
@@ -101,6 +105,9 @@ public class TranscribeHandler implements JobHandler {
         }
         piece.markStatus(AudioPieceStatus.TRANSCRIBED);
         pieces.flush();
+        if (piece.getFieldTag() != null && !kept.isEmpty()) {
+            jobs.enqueue(DraftField.JOB_TYPE, pieceId);
+        }
         Integer expected = session.getExpectedPieces();
         if (session.getStatus() == CaptureStatus.STOPPED
                 && expected != null

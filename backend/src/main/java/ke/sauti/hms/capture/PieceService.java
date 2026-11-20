@@ -63,8 +63,15 @@ public class PieceService {
      * @param sha256 hex SHA-256 of the audio, as the browser computed it
      * @param durationMs how long the piece is
      * @param offsetMs where it starts in the recording
+     * @param field the reception field it was recorded for, if any
      */
-    public record Upload(int sequenceNo, String mimeType, String sha256, int durationMs, int offsetMs) {}
+    public record Upload(
+            int sequenceNo, String mimeType, String sha256, int durationMs, int offsetMs, DraftField field) {
+
+        public Upload(int sequenceNo, String mimeType, String sha256, int durationMs, int offsetMs) {
+            this(sequenceNo, mimeType, sha256, durationMs, offsetMs, null);
+        }
+    }
 
     public Received receive(UUID sessionId, Upload upload, byte[] audio, VisitService.Actor actor) {
         CaptureSession session =
@@ -94,8 +101,10 @@ public class PieceService {
 
         String key = "sessions/" + sessionId + "/" + String.format(Locale.ROOT, "%06d", upload.sequenceNo());
         store.put(key, audio);
-        AudioPiece piece = pieces.saveAndFlush(new AudioPiece(
-                sessionId, upload.sequenceNo(), key, upload.durationMs(), upload.offsetMs(), sha256, mimeType));
+        AudioPiece newPiece = new AudioPiece(
+                sessionId, upload.sequenceNo(), key, upload.durationMs(), upload.offsetMs(), sha256, mimeType);
+        newPiece.tagField(upload.field());
+        AudioPiece piece = pieces.saveAndFlush(newPiece);
         jobs.enqueue(TranscribeHandler.TYPE, piece.getId());
         return new Received(piece, true);
     }
