@@ -16,6 +16,7 @@ public enum ErrorCode {
     LOGIN_EXPIRED(HttpStatus.UNAUTHORIZED, "The login has expired; start again"),
     FORBIDDEN(HttpStatus.FORBIDDEN, "You don't have access to this"),
     PASSWORD_CHANGE_REQUIRED(HttpStatus.FORBIDDEN, "Change your password before continuing"),
+    CSRF_TOKEN_INVALID(HttpStatus.FORBIDDEN, "The page is out of date; reload and try again"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Not found"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "This method is not allowed here"),
     CONFLICT(HttpStatus.CONFLICT, "The change conflicts with existing data"),

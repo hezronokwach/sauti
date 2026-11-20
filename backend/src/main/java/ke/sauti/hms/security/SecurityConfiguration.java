@@ -1,28 +1,52 @@
 package ke.sauti.hms.security;
 
+import java.time.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
- * The HTTP security setup the login flow needs: the login and code steps and the health
- * check are public, everything else needs a logged-in session, and the logged-in person
- * is kept in the session (stored in PostgreSQL by Spring Session). CSRF protection is on.
- * <p>
- * Issue 13 adds the session timeouts and cookie flags, the single-page-app CSRF setting,
- * security headers, and ApiError bodies for the 401 and 403 written here.
+ * The HTTP security setup.
+ * <ul>
+ *   <li>Public: the login and code steps, the health check and the error page; everything
+ *       else needs a logged-in session. Role rules sit on the endpoints themselves
+ *       ({@code @PreAuthorize}).
+ *   <li>The logged-in person lives in the session (PostgreSQL, through Spring Session).
+ *       The session cookie flags and the 15-minute idle timeout are in application.yml;
+ *       {@link SessionAgeLimitFilter} adds the 8-hour cap.
+ *   <li>CSRF uses the single-page-app setting: a readable {@code XSRF-TOKEN} cookie the
+ *       front end echoes in an {@code X-XSRF-TOKEN} header on every changing request.
+ *   <li>401 and 403 from the filters get the usual {@code ApiError} body.
+ *   <li>Security headers on every response.
+ * </ul>
  */
 @Configuration(proxyBeanMethods = false)
+@EnableMethodSecurity
 public class SecurityConfiguration {
+
+    /** The API only serves JSON, so the policy allows nothing to load or frame it. */
+    static final String CONTENT_SECURITY_POLICY =
+            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+
+    /** The microphone is for this site only (recording consultations); nothing else is allowed. */
+    static final String PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=()";
+
+    static final long HSTS_SECONDS = 365L * 24 * 60 * 60;
 
     @Bean
     SecurityContextRepository securityContextRepository() {
@@ -30,8 +54,25 @@ public class SecurityConfiguration {
                 new RequestAttributeSecurityContextRepository(), new HttpSessionSecurityContextRepository());
     }
 
+    /**
+     * Shared with {@link AuthController}, which replaces the token at login and logout
+     * because the login flow is its own, not one of Spring's login filters.
+     */
     @Bean
-    SecurityFilterChain apiSecurity(HttpSecurity http, SecurityContextRepository contextRepository) {
+    CsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieCustomizer(cookie -> cookie.path("/").secure(true).sameSite("Strict"));
+        return repository;
+    }
+
+    @Bean
+    SecurityFilterChain apiSecurity(
+            HttpSecurity http,
+            SecurityContextRepository contextRepository,
+            CsrfTokenRepository csrfTokenRepository,
+            Clock clock,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
+        SecurityErrorResponder errors = new SecurityErrorResponder(exceptionResolver);
         http.authorizeHttpRequests(
                         requests -> requests.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/code")
                                 .permitAll()
@@ -40,8 +81,16 @@ public class SecurityConfiguration {
                                 .anyRequest()
                                 .authenticated())
                 .securityContext(context -> context.securityContextRepository(contextRepository))
+                .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokenRepository))
+                .addFilterAfter(new SessionAgeLimitFilter(clock), SecurityContextHolderFilter.class)
                 .exceptionHandling(
-                        errors -> errors.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        handling -> handling.authenticationEntryPoint(errors).accessDeniedHandler(errors))
+                .headers(headers -> headers.httpStrictTransportSecurity(
+                                hsts -> hsts.maxAgeInSeconds(HSTS_SECONDS).includeSubDomains(true))
+                        .frameOptions(frame -> frame.deny())
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
+                        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.NO_REFERRER))
+                        .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy", PERMISSIONS_POLICY)))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable);

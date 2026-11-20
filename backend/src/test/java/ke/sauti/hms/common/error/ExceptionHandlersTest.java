@@ -19,6 +19,7 @@ import ke.sauti.hms.common.web.RequestIdFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -36,7 +37,9 @@ import org.springframework.test.web.servlet.ResultActions;
  * Every exception the handlers know about, sent through the real MVC stack.
  * Security filters are opened up here; their own 401/403 responses are tested in phase 1.
  */
-@WebMvcTest(controllers = ErrorTestController.class)
+@WebMvcTest(
+        controllers = ErrorTestController.class,
+        excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 @Import(ExceptionHandlersTest.OpenSecurity.class)
 @ActiveProfiles("test")
 @ExtendWith(OutputCaptureExtension.class)

@@ -7,6 +7,8 @@ spring:
     # Running from the IDE without SPRING_PROFILES_ACTIVE gives the dev profile.
     default: dev
   session:
+    # Spring Session deletes a session after 15 minutes without a request.
+    timeout: 15m
     jdbc:
       # Flyway creates the session tables (V3__spring_session.sql).
       initialize-schema: never
@@ -15,6 +17,15 @@ spring:
     hibernate:
       # Flyway owns the schema; Hibernate only checks entities match it.
       ddl-auto: validate
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        # Browsers accept Secure cookies on http://localhost, so dev still works.
+        secure: true
+        same-site: strict
 
 logging:
   pattern:
