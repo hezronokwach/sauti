@@ -35,6 +35,9 @@ public class AudioPiece extends BaseEntity {
     @Column(nullable = false, length = 64, updatable = false)
     private String sha256;
 
+    @Column(name = "mime_type", nullable = false, length = 50, updatable = false)
+    private String mimeType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private AudioPieceStatus status = AudioPieceStatus.STORED;
@@ -43,7 +46,15 @@ public class AudioPiece extends BaseEntity {
         // for JPA
     }
 
-    AudioPiece(UUID sessionId, int sequenceNo, String storageKey, int durationMs, int offsetMs, String sha256) {
+    AudioPiece(
+            UUID sessionId,
+            int sequenceNo,
+            String storageKey,
+            int durationMs,
+            int offsetMs,
+            String sha256,
+            String mimeType) {
+        this.mimeType = mimeType;
         this.sessionId = sessionId;
         this.sequenceNo = sequenceNo;
         this.storageKey = storageKey;
@@ -78,6 +89,10 @@ public class AudioPiece extends BaseEntity {
 
     public String getSha256() {
         return sha256;
+    }
+
+    public String getMimeType() {
+        return mimeType;
     }
 
     public AudioPieceStatus getStatus() {

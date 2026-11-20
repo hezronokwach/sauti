@@ -22,6 +22,7 @@ public enum ErrorCode {
     CONFLICT(HttpStatus.CONFLICT, "The change conflicts with existing data"),
     DUPLICATE_PATIENT(HttpStatus.CONFLICT, "A patient with this phone number or national ID is already registered"),
     STALE_VERSION(HttpStatus.CONFLICT, "This record was changed by someone else; reload and try again"),
+    GONE(HttpStatus.GONE, "This recording was erased"),
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "This content type is not supported"),
     BUSINESS_RULE_VIOLATED(HttpStatus.UNPROCESSABLE_CONTENT, "The request breaks a rule"),
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "Too many requests; try again shortly"),

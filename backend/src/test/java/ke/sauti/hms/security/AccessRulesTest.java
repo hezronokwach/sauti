@@ -96,7 +96,8 @@ class AccessRulesTest {
             new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT),
             new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/captures", ASK_CONSENT),
             new Rule(HttpMethod.POST, "/api/captures/" + UUID.randomUUID() + "/stop", ASK_CONSENT),
-            new Rule(HttpMethod.GET, "/api/captures/" + UUID.randomUUID(), ASK_CONSENT));
+            new Rule(HttpMethod.GET, "/api/captures/" + UUID.randomUUID(), ASK_CONSENT),
+            new Rule(HttpMethod.PUT, "/api/captures/" + UUID.randomUUID() + "/pieces/0", ASK_CONSENT));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(
