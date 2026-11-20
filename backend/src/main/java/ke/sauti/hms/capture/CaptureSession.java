@@ -61,6 +61,14 @@ public class CaptureSession extends BaseEntity {
         }
     }
 
+    /** Erased on request: the audio and transcript are removed; the row stays as the record that it happened. */
+    void erase(Instant at) {
+        if (status == CaptureStatus.RECORDING) {
+            this.stoppedAt = at;
+        }
+        this.status = CaptureStatus.ERASED;
+    }
+
     /** All expected pieces are transcribed. */
     void complete() {
         if (status == CaptureStatus.STOPPED) {

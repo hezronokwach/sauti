@@ -50,8 +50,15 @@ public class AccessPolicy {
                             ClinicalData.VITALS,
                             ClinicalData.NOTE,
                             ClinicalData.PRESCRIPTION,
-                            ClinicalData.CONSENT),
-            StaffRole.RECEPTIONIST, EnumSet.of(ClinicalData.REASON_FOR_VISIT, ClinicalData.CONSENT),
+                            ClinicalData.CONSENT,
+                            ClinicalData.TRANSCRIPT,
+                            ClinicalData.AUDIO),
+            StaffRole.RECEPTIONIST,
+                    EnumSet.of(
+                            ClinicalData.REASON_FOR_VISIT,
+                            ClinicalData.CONSENT,
+                            ClinicalData.TRANSCRIPT,
+                            ClinicalData.AUDIO),
             StaffRole.CASHIER, EnumSet.of(ClinicalData.PRESCRIPTION),
             StaffRole.ADMIN, EnumSet.noneOf(ClinicalData.class));
 
