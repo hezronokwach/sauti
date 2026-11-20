@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import ke.sauti.hms.capture.Confidence;
@@ -29,7 +30,7 @@ import ke.sauti.hms.capture.Confidence;
 public final class ClaimChecker {
 
     /** One transcript line, as the checks see it. */
-    public record Line(String text, Confidence confidence, int startMs) {}
+    public record Line(String text, Confidence confidence, int startMs, UUID sessionId) {}
 
     /**
      * The verdict on one claim.
@@ -39,13 +40,15 @@ public final class ClaimChecker {
      * @param numbersMatch every number in the claim is in the quote
      * @param checkAudio the quote comes from a LOW or REVIEW line
      * @param startMs where in the recording the quote starts, if found
+     * @param sessionId which recording the quote is in, if found
      */
     public record Verdict(
             boolean quotePresent,
             boolean negationConsistent,
             boolean numbersMatch,
             boolean checkAudio,
-            Integer startMs) {
+            Integer startMs,
+            UUID sessionId) {
 
         public boolean supported() {
             return quotePresent && negationConsistent && numbersMatch;
@@ -117,11 +120,13 @@ public final class ClaimChecker {
         String q = normalise(quote);
         boolean present = !q.isBlank() && (" " + transcript + " ").contains(" " + q + " ");
         Integer startMs = null;
+        UUID sessionId = null;
         boolean checkAudio = false;
         if (present) {
             List<Integer> touched = linesHolding(q);
             if (!touched.isEmpty()) {
                 startMs = lines.get(touched.getFirst()).startMs();
+                sessionId = lines.get(touched.getFirst()).sessionId();
             }
             checkAudio = touched.stream()
                     .map(i -> lines.get(i).confidence())
@@ -129,7 +134,7 @@ public final class ClaimChecker {
         }
         boolean negation = negated(claim) == negated(quote);
         boolean numbers = numbersIn(quote).containsAll(numbersIn(claim));
-        return new Verdict(present, negation, numbers, checkAudio, startMs);
+        return new Verdict(present, negation, numbers, checkAudio, startMs, sessionId);
     }
 
     /** The lines the quote lies in: the one that holds it whole, or the run of lines it spans. */

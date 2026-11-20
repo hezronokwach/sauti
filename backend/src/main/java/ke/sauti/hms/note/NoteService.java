@@ -87,24 +87,47 @@ public class NoteService {
 
     /** Creates the draft on the first save, then replaces its text on each later save. */
     public NoteWithAddenda saveDraft(UUID visitId, SaveNoteRequest request, VisitService.Actor actor) {
+        ClinicalNote note = openDraft(visitId, request.version(), actor);
+        note.write(request.sections(), request.usedAi());
+        return withAddenda(notes.saveAndFlush(note));
+    }
+
+    /**
+     * Adds accepted AI claims to the draft, each as a new line at the end of its section,
+     * and marks the note AI-assisted. The same version rule as a save applies, so the
+     * editor saves its own typing first.
+     *
+     * @param lines section name ({@link NoteSections#NAMES}) and the text to add, in order
+     */
+    public NoteWithAddenda addAiLines(
+            UUID visitId, @Nullable Long version, List<Map.Entry<String, String>> lines, VisitService.Actor actor) {
+        ClinicalNote note = openDraft(visitId, version, actor);
+        NoteSections sections = note.sections();
+        for (Map.Entry<String, String> line : lines) {
+            sections = sections.withLine(line.getKey(), line.getValue());
+        }
+        note.write(sections, true);
+        return withAddenda(notes.saveAndFlush(note));
+    }
+
+    /** The visit's draft, locked, or a new one: refused if signed or if the version is not the current one. */
+    private ClinicalNote openDraft(UUID visitId, @Nullable Long version, VisitService.Actor actor) {
         requireDoctor(actor);
         accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.NOTE, false);
         Visit visit = visits.get(visitId);
 
         ClinicalNote note = notes.lockByVisitId(visitId).orElse(null);
         if (note == null) {
-            if (request.version() != null) {
+            if (version != null) {
                 throw stale();
             }
-            note = new ClinicalNote(visitId, visit.getPatientId(), actor.staffId());
-        } else {
-            if (note.isSigned()) {
-                throw new ConflictException(SIGNED);
-            }
-            requireVersion(note, request.version());
+            return new ClinicalNote(visitId, visit.getPatientId(), actor.staffId());
         }
-        note.write(request.sections(), request.usedAi());
-        return withAddenda(notes.saveAndFlush(note));
+        if (note.isSigned()) {
+            throw new ConflictException(SIGNED);
+        }
+        requireVersion(note, version);
+        return note;
     }
 
     public NoteWithAddenda sign(UUID visitId, long version, @Nullable String code, VisitService.Actor actor) {
