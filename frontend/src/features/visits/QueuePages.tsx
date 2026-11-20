@@ -16,6 +16,7 @@ export function TriagePage() {
           status="IN_TRIAGE"
           action={{ kind: 'move', label: 'Send to doctor', to: 'WAITING_DOCTOR' }}
           emptyText="Nobody in triage."
+          openable
         />
       </div>
     </main>
@@ -38,6 +39,7 @@ export function DoctorPage() {
           status="WITH_DOCTOR"
           action={{ kind: 'move', label: 'Send to payment', to: 'WAITING_PAYMENT' }}
           emptyText="Nobody with a doctor."
+          openable
         />
       </div>
     </main>

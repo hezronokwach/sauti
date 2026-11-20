@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { ApiRequestError, errorMessage } from '../../api/client';
 import { useChangeVisitStatus, useQueue, useTakeVisit } from './api';
 import { minutesWaiting } from './time';
@@ -13,6 +14,8 @@ interface QueueListProps {
   status: VisitStatus;
   action?: QueueAction;
   emptyText?: string;
+  /** Show an Open link to each visit's page (for patients the viewer is looking after). */
+  openable?: boolean;
 }
 
 const TAKEN = 'Someone else has already taken this patient.';
@@ -27,6 +30,7 @@ export function QueueList({
   status,
   action,
   emptyText = 'Nobody waiting.',
+  openable = false,
 }: QueueListProps) {
   const queue = useQueue(status);
   const take = useTakeVisit();
@@ -65,7 +69,7 @@ export function QueueList({
               <th scope="col">No.</th>
               <th scope="col">Patient</th>
               <th scope="col">Waiting</th>
-              {action ? <th scope="col">Action</th> : null}
+              {action || openable ? <th scope="col">Action</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -76,18 +80,28 @@ export function QueueList({
                   {entry.patientName} <span className="quiet">{entry.patientNumber}</span>
                 </td>
                 <td>{minutesWaiting(entry.waitingSince)} min</td>
-                {action ? (
+                {action || openable ? (
                   <td>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      aria-label={`${action.label} ${entry.patientName}`}
-                      onClick={() => {
-                        act(entry);
-                      }}
-                    >
-                      {action.label}
-                    </button>
+                    {openable ? (
+                      <Link
+                        to={`/visits/${entry.visitId}`}
+                        aria-label={`Open ${entry.patientName}`}
+                      >
+                        Open
+                      </Link>
+                    ) : null}{' '}
+                    {action ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        aria-label={`${action.label} ${entry.patientName}`}
+                        onClick={() => {
+                          act(entry);
+                        }}
+                      >
+                        {action.label}
+                      </button>
+                    ) : null}
                   </td>
                 ) : null}
               </tr>

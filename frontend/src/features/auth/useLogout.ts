@@ -2,14 +2,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { apiFetch } from '../../api/client';
+import { flushAndClearPieces } from '../recorder/background';
 import { SESSION_QUERY_KEY, fetchCurrentStaff } from './session';
 
 /** Why the person was logged out, shown on the login page. */
 export type LogoutReason = 'idle';
 
 /**
- * Logs out: ends the server session, forgets every cached response (so no patient data
- * stays in memory), asks the backend again who is logged in (which also brings a fresh
+ * Logs out: sends then clears recordings waiting on the device, ends the server session,
+ * forgets every cached response (so no patient data stays in memory), asks the backend again who is logged in (which also brings a fresh
  * CSRF cookie), and goes to the login page.
  */
 export function useLogout() {
@@ -18,6 +19,9 @@ export function useLogout() {
 
   return useCallback(
     async (reason?: LogoutReason) => {
+      // Recordings waiting on this device are sent if possible, then cleared, so nothing
+      // stays behind for the next person to use the computer.
+      await flushAndClearPieces();
       try {
         await apiFetch<undefined>('/api/auth/logout', { method: 'POST' });
       } catch {
