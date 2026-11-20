@@ -13,6 +13,7 @@ import ke.sauti.hms.visit.dto.ChangeVisitStatusRequest;
 import ke.sauti.hms.visit.dto.OpenVisitRequest;
 import ke.sauti.hms.visit.dto.QueueEntryResponse;
 import ke.sauti.hms.visit.dto.ReasonForVisitResponse;
+import ke.sauti.hms.visit.dto.UpdateReasonRequest;
 import ke.sauti.hms.visit.dto.VisitResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -85,7 +87,25 @@ public class VisitController {
     /** Clinical: only for someone looking after the visit (see AccessPolicy). */
     @GetMapping("/{id}/reason")
     public ReasonForVisitResponse reason(@PathVariable UUID id, @AuthenticationPrincipal AuditActor staff) {
-        return new ReasonForVisitResponse(service.reasonForVisit(id, actor(staff)));
+        String reason = service.reasonForVisit(id, actor(staff));
+        return new ReasonForVisitResponse(reason, service.get(id).isReasonConfirmed());
+    }
+
+    @PutMapping("/{id}/reason")
+    @PreAuthorize("hasAnyRole('RECEPTIONIST', 'NURSE')")
+    public ReasonForVisitResponse changeReason(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateReasonRequest request,
+            @AuthenticationPrincipal AuditActor staff) {
+        Visit visit = service.changeReason(id, request.reasonForVisit(), actor(staff));
+        return new ReasonForVisitResponse(request.reasonForVisit().strip(), visit.isReasonConfirmed());
+    }
+
+    @PostMapping("/{id}/reason/confirm")
+    @PreAuthorize("hasRole('NURSE')")
+    public ReasonForVisitResponse confirmReason(@PathVariable UUID id, @AuthenticationPrincipal AuditActor staff) {
+        service.confirmReason(id, actor(staff));
+        return new ReasonForVisitResponse(service.reasonForVisit(id, actor(staff)), true);
     }
 
     @PostMapping("/{id}/take")

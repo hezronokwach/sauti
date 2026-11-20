@@ -132,7 +132,27 @@ class AccessRulesTest {
             new Rule(
                     HttpMethod.GET,
                     "/api/patients/" + UUID.randomUUID() + "/eligibility",
-                    EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.CASHIER)));
+                    EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.CASHIER)),
+            new Rule(
+                    HttpMethod.PUT,
+                    "/api/patients/" + UUID.randomUUID() + "/contact",
+                    EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(
+                    HttpMethod.GET,
+                    "/api/visits/" + UUID.randomUUID() + "/field-drafts",
+                    EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.NURSE)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/field-drafts/" + UUID.randomUUID() + "/confirm",
+                    EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.NURSE)),
+            new Rule(
+                    HttpMethod.PUT,
+                    "/api/visits/" + UUID.randomUUID() + "/reason",
+                    EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.NURSE)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/reason/confirm",
+                    EnumSet.of(StaffRole.NURSE)));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(

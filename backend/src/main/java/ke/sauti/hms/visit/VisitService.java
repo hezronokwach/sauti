@@ -134,6 +134,39 @@ public class VisitService {
         return get(visitId).getReasonForVisit();
     }
 
+    /**
+     * Reception or the nurse looking after the patient sets the reason for visit, typed or
+     * confirmed from a voice draft. A change clears the nurse's confirmation.
+     */
+    public Visit changeReason(UUID visitId, String reason, Actor actor) {
+        if (actor.role() != StaffRole.RECEPTIONIST && actor.role() != StaffRole.NURSE) {
+            throw new ForbiddenException("The reason for visit is set at reception or triage");
+        }
+        accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.REASON_FOR_VISIT, false);
+        Visit visit = lock(visitId);
+        if (visit.getStatus().isFinal()) {
+            throw new ConflictException("This visit is closed");
+        }
+        visit.changeReason(reason.strip());
+        audit.record(AuditAction.VISIT_REASON_CHANGED, VISIT, visitId, visit.getPatientId(), visitId, Map.of());
+        return visit;
+    }
+
+    /** The triage nurse confirms the reason with the patient. */
+    public Visit confirmReason(UUID visitId, Actor actor) {
+        if (actor.role() != StaffRole.NURSE) {
+            throw new ForbiddenException("The triage nurse confirms the reason for visit");
+        }
+        accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.REASON_FOR_VISIT, false);
+        Visit visit = lock(visitId);
+        if (visit.getReasonForVisit() == null) {
+            throw new BusinessRuleException("Write the reason for visit first");
+        }
+        visit.confirmReason(actor.staffId(), clock.instant());
+        audit.record(AuditAction.VISIT_REASON_CONFIRMED, VISIT, visitId, visit.getPatientId(), visitId, Map.of());
+        return visit;
+    }
+
     @Transactional(readOnly = true)
     public Visit get(UUID visitId) {
         return visits.findById(visitId).orElseThrow(() -> new NotFoundException("No such visit"));
