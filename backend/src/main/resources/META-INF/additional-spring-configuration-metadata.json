@@ -18,6 +18,25 @@
       "type": "java.lang.String",
       "description": "HMAC-SHA256 key for lookup hashes of encrypted values: 32 random bytes in Base64, different from the encryption key. Set through HASH_KEY.",
       "sourceType": "ke.sauti.hms.common.crypto.CryptoProperties"
+    },
+    {
+      "name": "sauti.first-admin.email",
+      "type": "java.lang.String",
+      "description": "Login email of the admin created at startup while the staff table is empty. Set through FIRST_ADMIN_EMAIL.",
+      "sourceType": "ke.sauti.hms.staff.FirstAdminProperties"
+    },
+    {
+      "name": "sauti.first-admin.password",
+      "type": "java.lang.String",
+      "description": "One-time password for the first admin, at least 12 characters, changed at first login. Set through FIRST_ADMIN_PASSWORD.",
+      "sourceType": "ke.sauti.hms.staff.FirstAdminProperties"
+    },
+    {
+      "name": "sauti.first-admin.name",
+      "type": "java.lang.String",
+      "description": "Display name of the first admin. Set through FIRST_ADMIN_NAME.",
+      "sourceType": "ke.sauti.hms.staff.FirstAdminProperties",
+      "defaultValue": "Administrator"
     }
   ]
 }

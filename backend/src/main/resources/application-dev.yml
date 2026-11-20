@@ -17,6 +17,11 @@ logging:
     ke.sauti.hms: debug
 
 sauti:
+  first-admin:
+    # Local only, not secret: a fresh local database gets this admin. Change the
+    # password at first login like any account; it is never used outside dev.
+    email: admin@sauti.local
+    password: Local-Dev-Admin-2026 # gitleaks:allow
   crypto:
     # Local only, not secret: fixed so data in the local database stays readable
     # across restarts. Every real deployment sets APP_ENCRYPTION_KEY and HASH_KEY.
