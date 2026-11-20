@@ -5,6 +5,7 @@ import { RequireLogin } from '../features/auth/RequireLogin';
 import { ROLE_HOME } from '../features/auth/roles';
 import { SignedInLayout } from '../features/auth/SignedInLayout';
 import type { StaffRole } from '../features/auth/types';
+import { PreRegisterPage } from '../features/prereg/PreRegisterPage';
 import { WaitingAreaPage } from '../features/queue/WaitingAreaPage';
 import { ReceptionPage } from '../features/reception/ReceptionPage';
 import { BillingPage, DoctorPage, TriagePage } from '../features/visits/QueuePages';
@@ -28,6 +29,8 @@ export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
   // The waiting-area screen: no login, ticket codes only.
   { path: '/waiting-area', element: <WaitingAreaPage /> },
+  // Reached by QR code: saves only, answers with a ticket code.
+  { path: '/pre-register', element: <PreRegisterPage /> },
   {
     element: <RequireLogin forPasswordChange />,
     children: [

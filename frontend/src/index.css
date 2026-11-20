@@ -272,6 +272,16 @@ textarea {
   color: #1f6f43;
 }
 
+/* Pre-registration */
+.patient-entered {
+  font-size: 0.8125rem;
+  color: #8a5a00;
+}
+
+.pre-register {
+  max-width: 32rem;
+}
+
 /* Queue tickets */
 .ticket-code {
   font-variant-numeric: tabular-nums;

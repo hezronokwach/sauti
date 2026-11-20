@@ -6,6 +6,8 @@ import { TicketDesk } from '../queue/TicketDesk';
 import type { TicketResponse } from '../queue/types';
 import { QueueList } from '../visits/QueueList';
 import { useChangeVisitStatus, useOpenVisit } from '../visits/api';
+import { PreRegistrationLookup } from './PreRegistrationLookup';
+import type { PreFill } from './PreRegistrationLookup';
 import { RegisterPatientForm } from './RegisterPatientForm';
 
 /**
@@ -18,6 +20,7 @@ export function ReceptionPage() {
   const [registering, setRegistering] = useState(false);
   const [patient, setPatient] = useState<PatientSummaryResponse | null>(null);
   const [ticket, setTicket] = useState<TicketResponse | null>(null);
+  const [preFill, setPreFill] = useState<PreFill | null>(null);
   const search = usePatientSearch(query);
 
   const choose = (chosen: PatientSummaryResponse) => {
@@ -77,7 +80,23 @@ export function ReceptionPage() {
             </button>
           </section>
 
-          {registering ? <RegisterPatientForm onPatient={choose} /> : null}
+          <PreRegistrationLookup
+            key={ticket?.lane === 'PRE_REGISTERED' ? ticket.code : 'none'}
+            ticketCode={ticket?.lane === 'PRE_REGISTERED' ? ticket.code : null}
+            onLoaded={(loaded) => {
+              setPreFill(loaded);
+              setRegistering(true);
+              setPatient(null);
+            }}
+          />
+          {registering ? (
+            <RegisterPatientForm
+              key={preFill?.id ?? 'blank'}
+              onPatient={choose}
+              initial={preFill?.values}
+              patientEntered={preFill ? preFill.fields : []}
+            />
+          ) : null}
           {patient ? (
             <OpenVisitPanel
               patient={patient}
@@ -85,9 +104,11 @@ export function ReceptionPage() {
               onOpened={() => {
                 setTicket(null);
               }}
+              initialReason={preFill?.reasonForVisit ?? ''}
               onDone={() => {
                 setPatient(null);
                 setQuery('');
+                setPreFill(null);
               }}
             />
           ) : null}
@@ -111,12 +132,14 @@ interface OpenVisitPanelProps {
   patient: PatientSummaryResponse;
   /** The ticket being served; the visit counts its waiting time from it. */
   ticket: TicketResponse | null;
+  /** The reason the patient typed when pre-registering, to check with them. */
+  initialReason: string;
   onOpened: () => void;
   onDone: () => void;
 }
 
-function OpenVisitPanel({ patient, ticket, onOpened, onDone }: OpenVisitPanelProps) {
-  const [reason, setReason] = useState('');
+function OpenVisitPanel({ patient, ticket, initialReason, onOpened, onDone }: OpenVisitPanelProps) {
+  const [reason, setReason] = useState(initialReason);
   const [opened, setOpened] = useState<number | null>(null);
   const open = useOpenVisit();
   const move = useChangeVisitStatus();

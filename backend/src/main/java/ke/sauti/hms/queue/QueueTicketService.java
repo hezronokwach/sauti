@@ -54,6 +54,17 @@ public class QueueTicketService {
         return tickets.save(new QueueTicket(facilityTime.today(), lane, number, clock.instant(), actor.staffId()));
     }
 
+    /**
+     * A pre-registered ticket from the public page: no staff member issues it. Joins the
+     * caller's transaction, so a pre-registration that fails to save uses no number.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public QueueTicket issuePreRegistered() {
+        int number = sql.nextNumber(facilityTime.today(), TicketLane.PRE_REGISTERED);
+        return tickets.save(
+                new QueueTicket(facilityTime.today(), TicketLane.PRE_REGISTERED, number, clock.instant(), null));
+    }
+
     /** Reception's next ticket, or empty when nobody is waiting. */
     public Optional<QueueTicket> callNext(Actor actor) {
         requireReception(actor);
@@ -90,6 +101,13 @@ public class QueueTicketService {
         }
         ticket.cancel();
         return ticket;
+    }
+
+    /** Today's ticket with this code, such as P-003. */
+    @Transactional(readOnly = true)
+    public Optional<QueueTicket> todayByCode(String code) {
+        return tickets.findByTicketDateAndCode(
+                facilityTime.today(), code.strip().toUpperCase(java.util.Locale.ROOT));
     }
 
     /** Today's waiting and called tickets, for reception and clinical staff. */

@@ -35,7 +35,8 @@ public class QueueTicket extends BaseEntity {
     @Column(name = "arrived_at", nullable = false, updatable = false)
     private Instant arrivedAt;
 
-    @Column(name = "issued_by", nullable = false, updatable = false)
+    /** Null for a ticket from the public pre-registration page. */
+    @Column(name = "issued_by", updatable = false)
     private UUID issuedBy;
 
     @Column(name = "called_at")
