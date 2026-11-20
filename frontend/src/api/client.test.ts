@@ -1,6 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse } from '../test/render';
-import { ApiRequestError, apiFetch } from './client';
+import {
+  ApiRequestError,
+  CSRF_HEADER,
+  apiFetch,
+  errorMessage,
+  readCookie,
+  setApiEventHandlers,
+} from './client';
 
 const REQUEST_ID = '0f8fad5b-d9cb-469f-a165-70867728950e';
 
@@ -22,14 +29,14 @@ async function expectApiError(promise: Promise<unknown>): Promise<ApiRequestErro
 }
 
 describe('apiFetch', () => {
-  it('returns the parsed body and sends same-site cookies', async () => {
+  it('returns the parsed body and always sends the session cookie', async () => {
     const fetchMock = stubFetch(jsonResponse(200, { name: 'Sauti Demo Clinic' }));
 
     const body = await apiFetch<{ name: string }>('/api/facility');
 
     expect(body).toEqual({ name: 'Sauti Demo Clinic' });
     const init = fetchMock.mock.calls[0]?.[1];
-    expect(init?.credentials).toBe('same-origin');
+    expect(init?.credentials).toBe('include');
     expect(new Headers(init?.headers).get('Accept')).toBe('application/json');
   });
 
@@ -109,5 +116,153 @@ describe('apiFetch', () => {
     expect(error.status).toBe(502);
     expect(error.code).toBe('HTTP_502');
     expect(error.requestId).toBe(REQUEST_ID);
+  });
+});
+
+function apiError(code: string, message = 'Refused') {
+  return { code, message, fieldErrors: [], requestId: REQUEST_ID };
+}
+
+function setCookie(value: string) {
+  document.cookie = `XSRF-TOKEN=${value}; path=/`;
+}
+
+function clearCookie() {
+  document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+}
+
+describe('CSRF token', () => {
+  afterEach(clearCookie);
+
+  it('copies the cookie into the header on changing requests', async () => {
+    setCookie('token-1');
+    const fetchMock = stubFetch(jsonResponse(200, {}));
+
+    await apiFetch('/api/things', { method: 'POST', body: '{}' });
+
+    expect(new Headers(fetchMock.mock.calls[0]?.[1]?.headers).get(CSRF_HEADER)).toBe('token-1');
+  });
+
+  it('sends no token on reads', async () => {
+    setCookie('token-1');
+    const fetchMock = stubFetch(jsonResponse(200, {}));
+
+    await apiFetch('/api/things');
+
+    expect(new Headers(fetchMock.mock.calls[0]?.[1]?.headers).has(CSRF_HEADER)).toBe(false);
+  });
+
+  it('fetches a token first when there is no cookie yet', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation((input) => {
+      if (input === '/api/auth/me') {
+        setCookie('fresh');
+        return Promise.resolve(jsonResponse(401, apiError('UNAUTHENTICATED')));
+      }
+      return Promise.resolve(jsonResponse(200, {}));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiFetch('/api/auth/login', { method: 'POST', body: '{}' });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/auth/me');
+    expect(new Headers(fetchMock.mock.calls[1]?.[1]?.headers).get(CSRF_HEADER)).toBe('fresh');
+  });
+
+  it('gets a new token and tries once more when the token is refused', async () => {
+    setCookie('stale');
+    let calls = 0;
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation((input) => {
+      if (input === '/api/auth/me') {
+        setCookie('renewed');
+        return Promise.resolve(jsonResponse(200, {}));
+      }
+      calls += 1;
+      return Promise.resolve(
+        calls === 1
+          ? jsonResponse(403, apiError('CSRF_TOKEN_INVALID'))
+          : jsonResponse(200, { saved: true }),
+      );
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const body = await apiFetch<{ saved: boolean }>('/api/things', { method: 'POST' });
+
+    expect(body).toEqual({ saved: true });
+    const lastHeaders = new Headers(fetchMock.mock.calls.at(-1)?.[1]?.headers);
+    expect(lastHeaders.get(CSRF_HEADER)).toBe('renewed');
+  });
+
+  it('reads cookies by exact name', () => {
+    document.cookie = 'OTHER-XSRF-TOKEN=nope; path=/';
+    setCookie('a%3Db');
+
+    expect(readCookie('XSRF-TOKEN')).toBe('a=b');
+    document.cookie = 'OTHER-XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  });
+});
+
+describe('session events', () => {
+  afterEach(() => {
+    setApiEventHandlers({
+      onUnauthorized: () => undefined,
+      onPasswordChangeRequired: () => undefined,
+    });
+  });
+
+  function watch() {
+    const events = { unauthorized: 0, passwordChange: 0 };
+    setApiEventHandlers({
+      onUnauthorized: () => {
+        events.unauthorized += 1;
+      },
+      onPasswordChangeRequired: () => {
+        events.passwordChange += 1;
+      },
+    });
+    return events;
+  }
+
+  it('reports a 401 as the session being gone', async () => {
+    const events = watch();
+    stubFetch(jsonResponse(401, apiError('UNAUTHENTICATED')));
+
+    await expectApiError(apiFetch('/api/patients'));
+
+    expect(events.unauthorized).toBe(1);
+  });
+
+  it('does not treat a refused login step as the session being gone', async () => {
+    const events = watch();
+    setCookie('t');
+    stubFetch(jsonResponse(401, apiError('LOGIN_FAILED')));
+
+    await expectApiError(apiFetch('/api/auth/login', { method: 'POST' }));
+
+    expect(events.unauthorized).toBe(0);
+    clearCookie();
+  });
+
+  it('reports a required password change', async () => {
+    const events = watch();
+    stubFetch(jsonResponse(403, apiError('PASSWORD_CHANGE_REQUIRED')));
+
+    await expectApiError(apiFetch('/api/patients'));
+
+    expect(events.passwordChange).toBe(1);
+  });
+});
+
+describe('errorMessage', () => {
+  it('says plainly when access is refused', () => {
+    expect(errorMessage(new ApiRequestError(403, apiError('FORBIDDEN')))).toBe(
+      "You don't have access to this",
+    );
+  });
+
+  it('shows the backend message otherwise, and a plain one for network failures', () => {
+    expect(errorMessage(new ApiRequestError(422, apiError('BUSINESS_RULE_VIOLATED', 'Nope')))).toBe(
+      'Nope',
+    );
+    expect(errorMessage(new TypeError('Failed to fetch'))).toContain('check your connection');
   });
 });
