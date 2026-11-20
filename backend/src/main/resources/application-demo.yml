@@ -20,3 +20,6 @@ sauti:
     - STORAGE_BUCKET
     - STORAGE_ACCESS_KEY
     - STORAGE_SECRET_KEY
+    - GROQ_API_KEY
+  transcription:
+    provider: groq
