@@ -1,6 +1,7 @@
 package ke.sauti.hms.patient;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Objects;
 import ke.sauti.hms.common.error.ApiError;
 import ke.sauti.hms.common.error.BaseExceptionHandler;
 import ke.sauti.hms.common.error.ErrorCode;
@@ -21,7 +22,7 @@ public class PatientExceptionHandler extends BaseExceptionHandler {
     @ExceptionHandler(DuplicatePatientException.class)
     ResponseEntity<DuplicatePatientResponse> handleDuplicate(DuplicatePatientException ex, HttpServletRequest request) {
         ResponseEntity<ApiError> standard = respond(ErrorCode.DUPLICATE_PATIENT, ex.getMessage(), ex, request);
-        ApiError error = standard.getBody();
+        ApiError error = Objects.requireNonNull(standard.getBody(), "respond always sets a body");
         DuplicatePatientResponse body = new DuplicatePatientResponse(
                 error.code(),
                 error.message(),

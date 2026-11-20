@@ -130,6 +130,16 @@ public class Patient extends BaseEntity {
         return phone;
     }
 
+    /** Keyed hash of the normalised phone, for exact lookups. */
+    public byte[] getPhoneHash() {
+        return phoneHash == null ? null : phoneHash.clone();
+    }
+
+    /** Keyed hash of the national ID, for exact lookups. */
+    public byte[] getNationalIdHash() {
+        return nationalIdHash == null ? null : nationalIdHash.clone();
+    }
+
     public String getNationalId() {
         return nationalId;
     }

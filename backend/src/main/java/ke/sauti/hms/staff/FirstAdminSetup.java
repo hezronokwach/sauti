@@ -3,6 +3,7 @@ package ke.sauti.hms.staff;
 import java.util.Map;
 import ke.sauti.hms.audit.AuditAction;
 import ke.sauti.hms.audit.AuditService;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -43,7 +44,7 @@ public class FirstAdminSetup implements ApplicationRunner {
 
     @Override
     @Transactional
-    public void run(ApplicationArguments args) {
+    public void run(@NonNull ApplicationArguments args) {
         if (repository.count() > 0) {
             return;
         }
