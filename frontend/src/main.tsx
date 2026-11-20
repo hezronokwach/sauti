@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router/dom';
 import { createQueryClient } from './app/queryClient';
 import { routes } from './app/routes';
 import { wireApiEvents } from './app/wireApiEvents';
+import { startUploadsInBackground } from './features/recorder/background';
 import './index.css';
 
 const root = document.getElementById('root');
@@ -16,6 +17,7 @@ if (!root) {
 const router = createBrowserRouter(routes);
 const queryClient = createQueryClient();
 wireApiEvents(queryClient, router);
+startUploadsInBackground();
 
 createRoot(root).render(
   <StrictMode>

@@ -7,6 +7,7 @@ import { SignedInLayout } from '../features/auth/SignedInLayout';
 import type { StaffRole } from '../features/auth/types';
 import { ReceptionPage } from '../features/reception/ReceptionPage';
 import { BillingPage, DoctorPage, TriagePage } from '../features/visits/QueuePages';
+import { VisitPage } from '../features/visits/VisitPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { RoleHomePage } from '../pages/RoleHomePage';
 import { RootRedirect } from '../pages/RootRedirect';
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
           page(ROLE_HOME.DOCTOR, ['DOCTOR'], <DoctorPage />),
           page(ROLE_HOME.CASHIER, ['CASHIER'], <BillingPage />),
           page(ROLE_HOME.ADMIN, ['ADMIN'], <RoleHomePage title="Administration" />),
+          page('/visits/:visitId', ['RECEPTIONIST', 'NURSE', 'DOCTOR'], <VisitPage />),
         ],
       },
     ],
