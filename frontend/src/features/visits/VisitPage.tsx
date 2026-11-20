@@ -1,18 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { apiFetch, errorMessage } from '../../api/client';
 import { ROLE_HOME } from '../auth/roles';
 import { useCurrentStaff } from '../auth/session';
 import type { PatientDetailsResponse } from '../patients/types';
 import { RecordingPanel } from '../recorder/RecordingPanel';
+import { AllergyList } from '../triage/AllergyList';
+import { VitalsForm } from '../triage/VitalsForm';
+import { VitalsSummary } from '../triage/VitalsSummary';
 import type { VisitResponse } from './types';
 
 /**
- * One visit: who the patient is, and recording with consent. The transcript (issue 26) and
- * the note editor (issue 33) join this page.
+ * One visit: who the patient is, vitals with the allergy list at triage, and recording with
+ * consent. The note editor (issue 33) joins this page.
  */
 export function VisitPage() {
   const { visitId = '' } = useParams();
+  const navigate = useNavigate();
   const { data: staff } = useCurrentStaff();
   const visit = useQuery({
     queryKey: ['visits', visitId],
@@ -46,6 +50,21 @@ export function VisitPage() {
             Queue number {visit.data.queueNumber},{' '}
             {visit.data.status.replaceAll('_', ' ').toLowerCase()}
           </p>
+          {staff.role === 'NURSE' || staff.role === 'DOCTOR' ? (
+            <div className="columns">
+              {staff.role === 'NURSE' && visit.data.status === 'IN_TRIAGE' ? (
+                <VitalsForm
+                  visitId={visitId}
+                  onRecorded={() => {
+                    void navigate(ROLE_HOME[staff.role]);
+                  }}
+                />
+              ) : (
+                <VitalsSummary visitId={visitId} />
+              )}
+              <AllergyList patientId={visit.data.patientId} />
+            </div>
+          ) : null}
           <RecordingPanel
             visitId={visitId}
             purpose={staff.role === 'RECEPTIONIST' ? 'RECORD_RECEPTION' : 'RECORD_CONSULTATION'}
