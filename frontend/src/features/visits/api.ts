@@ -24,7 +24,7 @@ function useRefreshQueues() {
 export function useOpenVisit() {
   const refresh = useRefreshQueues();
   return useMutation({
-    mutationFn: (request: { patientId: string; reasonForVisit?: string }) =>
+    mutationFn: (request: { patientId: string; reasonForVisit?: string; ticketId?: string }) =>
       apiPost<VisitResponse>('/api/visits', request),
     onSettled: refresh,
   });

@@ -1,3 +1,4 @@
+import { EmergencyAlerts } from '../queue/EmergencyAlerts';
 import { QueueList } from './QueueList';
 
 /**
@@ -8,6 +9,7 @@ export function TriagePage() {
   return (
     <main className="wide">
       <h1>Triage</h1>
+      <EmergencyAlerts />
       <div className="columns">
         <QueueList
           title="Waiting for triage"
@@ -25,6 +27,7 @@ export function DoctorPage() {
   return (
     <main className="wide">
       <h1>Doctor</h1>
+      <EmergencyAlerts />
       <div className="columns">
         <QueueList
           title="Waiting for a doctor"
