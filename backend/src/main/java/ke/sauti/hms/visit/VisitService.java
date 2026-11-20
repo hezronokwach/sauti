@@ -36,6 +36,7 @@ public class VisitService {
     private final AuditService audit;
     private final FacilityTime facilityTime;
     private final Clock clock;
+    private final AccessPolicy accessPolicy;
 
     public VisitService(
             VisitRepository visits,
@@ -44,7 +45,8 @@ public class VisitService {
             PatientService patients,
             AuditService audit,
             FacilityTime facilityTime,
-            Clock clock) {
+            Clock clock,
+            AccessPolicy accessPolicy) {
         this.visits = visits;
         this.history = history;
         this.assignments = assignments;
@@ -52,6 +54,7 @@ public class VisitService {
         this.audit = audit;
         this.facilityTime = facilityTime;
         this.clock = clock;
+        this.accessPolicy = accessPolicy;
     }
 
     /** Who is acting: the logged-in staff member and their role. */
@@ -103,6 +106,12 @@ public class VisitService {
      */
     public Visit changeStatus(UUID visitId, VisitStatus to, String reason, Actor actor) {
         return apply(lock(visitId), to, actor, reason);
+    }
+
+    /** What brought the patient in, for someone looking after the visit; access-logged. */
+    public String reasonForVisit(UUID visitId, Actor actor) {
+        accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.REASON_FOR_VISIT, true);
+        return get(visitId).getReasonForVisit();
     }
 
     @Transactional(readOnly = true)

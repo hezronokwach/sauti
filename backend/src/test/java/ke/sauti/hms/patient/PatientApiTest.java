@@ -20,6 +20,8 @@ import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
 import ke.sauti.hms.support.FixedClockConfiguration;
+import ke.sauti.hms.visit.VisitService;
+import ke.sauti.hms.visit.VisitStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,9 @@ class PatientApiTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private VisitService visits;
 
     private Staff reception;
     private Staff nurse;
@@ -311,8 +316,14 @@ class PatientApiTest {
 
     // ---- allergies ----------------------------------------------------------------
 
+    /** A patient the nurse is looking after: reception opened a visit and the nurse took it. */
     private String patientId() throws Exception {
-        return registered(patient("Allergy Patient", null, null)).get("id").asString();
+        String id = registered(patient("Allergy Patient", null, null)).get("id").asString();
+        VisitService.Actor desk = new VisitService.Actor(reception.getId(), StaffRole.RECEPTIONIST);
+        UUID visitId = visits.open(UUID.fromString(id), null, desk).getId();
+        visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, desk);
+        visits.take(visitId, new VisitService.Actor(nurse.getId(), StaffRole.NURSE));
+        return id;
     }
 
     private ResultActions recordAllergy(String patientId, Map<String, Object> body) throws Exception {
