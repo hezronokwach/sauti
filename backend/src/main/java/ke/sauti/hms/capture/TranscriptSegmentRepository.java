@@ -14,6 +14,12 @@ public interface TranscriptSegmentRepository extends JpaRepository<TranscriptSeg
     /** Segments before a given position, newest first: the context for the next piece. */
     List<TranscriptSegment> findTop5BySessionIdAndOrderNoLessThanOrderByOrderNoDesc(UUID sessionId, int orderNo);
 
+    List<TranscriptSegment> findBySessionIdAndOrderNoGreaterThanOrderByOrderNoAsc(UUID sessionId, int orderNo);
+
+    @Modifying
+    @Query("delete from TranscriptSegment s where s.sessionId = :sessionId")
+    int deleteBySessionId(@Param("sessionId") UUID sessionId);
+
     @Modifying
     @Query("delete from TranscriptSegment s where s.pieceId = :pieceId")
     int deleteByPieceId(@Param("pieceId") UUID pieceId);
