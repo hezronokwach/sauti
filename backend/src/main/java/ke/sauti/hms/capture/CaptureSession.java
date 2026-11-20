@@ -61,6 +61,13 @@ public class CaptureSession extends BaseEntity {
         }
     }
 
+    /** All expected pieces are transcribed. */
+    void complete() {
+        if (status == CaptureStatus.STOPPED) {
+            this.status = CaptureStatus.COMPLETE;
+        }
+    }
+
     public boolean isRecording() {
         return status == CaptureStatus.RECORDING;
     }

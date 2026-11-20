@@ -92,7 +92,7 @@ public class JobWorker {
     /** Claims up to one batch of due jobs, marking them RUNNING with a lock. */
     List<ClaimedJob> claim() {
         Instant now = clock.instant();
-        List<ClaimedJob> claimed = transaction.execute(status -> jdbc.query(
+        return transaction.execute(status -> jdbc.query(
                 CLAIM,
                 (rs, row) -> new ClaimedJob(
                         rs.getObject("id", UUID.class),
@@ -103,7 +103,6 @@ public class JobWorker {
                 Timestamp.from(now),
                 Timestamp.from(now),
                 BATCH));
-        return claimed;
     }
 
     /** Returns jobs whose lock expired while RUNNING to the queue; returns how many. */

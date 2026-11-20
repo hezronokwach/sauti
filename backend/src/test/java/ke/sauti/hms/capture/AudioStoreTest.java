@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.UUID;
 import ke.sauti.hms.TestcontainersConfiguration;
+import ke.sauti.hms.support.SeaweedFs;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,34 +14,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 /** Audio in real S3-compatible storage (SeaweedFS, as in development) is always encrypted. */
 @SpringBootTest
-@Testcontainers
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class AudioStoreTest {
 
-    @Container
-    static final GenericContainer<?> SEAWEED = new GenericContainer<>(DockerImageName.parse("chrislusf/seaweedfs:4.54"))
-            .withCommand("server", "-dir=/data", "-s3", "-s3.port=8333")
-            .withExposedPorts(8333)
-            .waitingFor(Wait.forHttp("/")
-                    .forPort(8333)
-                    .forStatusCodeMatching(code -> code > 0)
-                    .withStartupTimeout(Duration.ofMinutes(2)));
-
     @DynamicPropertySource
     static void storage(DynamicPropertyRegistry registry) {
-        registry.add("sauti.storage.endpoint", () -> "http://" + SEAWEED.getHost() + ":" + SEAWEED.getMappedPort(8333));
-        registry.add("sauti.storage.bucket", () -> "test-audio");
-        registry.add("sauti.storage.create-bucket", () -> "true");
+        SeaweedFs.register(registry, "test-audio");
     }
 
     @Autowired
