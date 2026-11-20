@@ -110,6 +110,17 @@ public class AccessPolicy {
         decide(allowed, actor, patientId, null, kind, read);
     }
 
+    /**
+     * Allows or refuses (403) opening a patient's past records at all: only a doctor looking
+     * after a current visit of this patient. Each record opened is then checked and logged
+     * with {@link #requireVisitAccess}.
+     */
+    @Transactional
+    public void requirePastRecordsAccess(VisitService.Actor actor, UUID patientId, ClinicalData kind) {
+        boolean allowed = roleMay(actor.role(), kind) && pastRecordForCurrentDoctor(actor, patientId, kind);
+        decide(allowed, actor, patientId, null, kind, false);
+    }
+
     static boolean roleMay(StaffRole role, ClinicalData kind) {
         return ROLE_TABLE.getOrDefault(role, Set.of()).contains(kind);
     }
