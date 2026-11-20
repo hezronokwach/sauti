@@ -39,9 +39,15 @@ const schema = z
 
 type Form = z.infer<typeof schema>;
 
+/** Values to start the form with, for example from a pre-registration. */
+export type RegisterInitialValues = Partial<Form>;
+
 interface RegisterPatientFormProps {
   /** A patient to continue with: the new one, or an existing match reception picked. */
   onPatient: (patient: PatientSummaryResponse) => void;
+  initial?: RegisterInitialValues;
+  /** Fields the patient typed themselves (pre-registration): marked for reception to check. */
+  patientEntered?: readonly (keyof Form)[];
 }
 
 function toRequest(values: Form, confirmNewPatient: boolean): RegisterPatientRequest {
@@ -64,10 +70,14 @@ function toRequest(values: Form, confirmNewPatient: boolean): RegisterPatientReq
  * shown so reception picks the existing patient; a shared family phone can be confirmed as
  * a different person.
  */
-export function RegisterPatientForm({ onPatient }: RegisterPatientFormProps) {
+export function RegisterPatientForm({
+  onPatient,
+  initial,
+  patientEntered = [],
+}: RegisterPatientFormProps) {
   const form = useForm<Form>({
     resolver: zodResolver(schema),
-    defaultValues: { payerType: 'CASH', preferredLanguage: 'SWAHILI' },
+    defaultValues: { payerType: 'CASH', preferredLanguage: 'SWAHILI', ...initial },
   });
   const register = useRegisterPatient();
   const duplicates = duplicateDetails(register.error);
@@ -80,7 +90,12 @@ export function RegisterPatientForm({ onPatient }: RegisterPatientFormProps) {
 
   const field = (name: keyof Form, label: string, input: React.ReactNode) => (
     <>
-      <label htmlFor={`register-${name}`}>{label}</label>
+      <label htmlFor={`register-${name}`}>
+        {label}
+        {patientEntered.includes(name) ? (
+          <span className="patient-entered"> patient-entered, check with the patient</span>
+        ) : null}
+      </label>
       {input}
       {errors[name] ? (
         <p id={`register-${name}-error`} className="field-error">
@@ -117,7 +132,7 @@ export function RegisterPatientForm({ onPatient }: RegisterPatientFormProps) {
         {field(
           'sex',
           'Sex',
-          <select {...invalid('sex')} {...form.register('sex')} defaultValue="">
+          <select {...invalid('sex')} {...form.register('sex')} defaultValue={initial?.sex ?? ''}>
             <option value="" disabled>
               Choose
             </option>
