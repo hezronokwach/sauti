@@ -3,6 +3,7 @@ package ke.sauti.hms.patient;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -151,6 +152,14 @@ public class PatientService {
     @Transactional(readOnly = true)
     public Patient get(UUID id) {
         return repository.findById(id).orElseThrow(() -> new NotFoundException("No such patient"));
+    }
+
+    /** The patients with these ids, by id, for lists such as the queues. */
+    @Transactional(readOnly = true)
+    public Map<UUID, Patient> getAll(Collection<UUID> ids) {
+        Map<UUID, Patient> byId = new LinkedHashMap<>();
+        repository.findAllById(ids).forEach(patient -> byId.put(patient.getId(), patient));
+        return byId;
     }
 
     private List<Patient> findByPhoneOrNationalId(String digits) {
