@@ -103,22 +103,22 @@ public class JobWorker {
                 Timestamp.from(now),
                 Timestamp.from(now),
                 BATCH));
-        return claimed == null ? List.of() : claimed;
+        return claimed;
     }
 
     /** Returns jobs whose lock expired while RUNNING to the queue; returns how many. */
     public int recover() {
         Timestamp now = Timestamp.from(clock.instant());
-        Integer recovered = transaction.execute(status -> jdbc.update(
+        int recovered = transaction.execute(status -> jdbc.update(
                 "update job set status = 'QUEUED', locked_until = null, run_after = ?, updated_at = ?"
                         + " where status = 'RUNNING' and locked_until < ?",
                 now,
                 now,
                 now));
-        if (recovered != null && recovered > 0) {
+        if (recovered > 0) {
             log.warn("Returned {} stuck job(s) to the queue", recovered);
         }
-        return recovered == null ? 0 : recovered;
+        return recovered;
     }
 
     private void run(ClaimedJob job) {
