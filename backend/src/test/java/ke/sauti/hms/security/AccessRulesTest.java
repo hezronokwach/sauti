@@ -93,7 +93,10 @@ class AccessRulesTest {
             new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/reason", FIND_PATIENTS),
             new Rule(HttpMethod.GET, "/api/consent/wording?language=SWAHILI", ASK_CONSENT),
             new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT),
-            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT));
+            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT),
+            new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/captures", ASK_CONSENT),
+            new Rule(HttpMethod.POST, "/api/captures/" + UUID.randomUUID() + "/stop", ASK_CONSENT),
+            new Rule(HttpMethod.GET, "/api/captures/" + UUID.randomUUID(), ASK_CONSENT));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(

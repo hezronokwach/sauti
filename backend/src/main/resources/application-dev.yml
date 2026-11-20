@@ -17,6 +17,13 @@ logging:
     ke.sauti.hms: debug
 
 sauti:
+  storage:
+    # SeaweedFS from compose.yaml; it runs without S3 authentication locally.
+    endpoint: http://localhost:8333
+    access-key: local-dev
+    secret-key: local-dev # gitleaks:allow
+    region: us-east-1
+    create-bucket: true
   first-admin:
     # Local only, not secret: a fresh local database gets this admin. Change the
     # password at first login like any account; it is never used outside dev.

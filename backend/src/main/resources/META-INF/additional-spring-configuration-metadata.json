@@ -37,6 +37,49 @@
       "description": "Display name of the first admin. Set through FIRST_ADMIN_NAME.",
       "sourceType": "ke.sauti.hms.staff.FirstAdminProperties",
       "defaultValue": "Administrator"
+    },
+    {
+      "name": "sauti.storage.endpoint",
+      "type": "java.lang.String",
+      "description": "S3 endpoint URL for audio storage. Set through STORAGE_ENDPOINT.",
+      "sourceType": "ke.sauti.hms.capture.StorageProperties"
+    },
+    {
+      "name": "sauti.storage.bucket",
+      "type": "java.lang.String",
+      "description": "Bucket for encrypted audio pieces. Set through STORAGE_BUCKET.",
+      "sourceType": "ke.sauti.hms.capture.StorageProperties"
+    },
+    {
+      "name": "sauti.storage.access-key",
+      "type": "java.lang.String",
+      "description": "Storage access key id. Set through STORAGE_ACCESS_KEY.",
+      "sourceType": "ke.sauti.hms.capture.StorageProperties"
+    },
+    {
+      "name": "sauti.storage.secret-key",
+      "type": "java.lang.String",
+      "description": "Storage secret key. Set through STORAGE_SECRET_KEY.",
+      "sourceType": "ke.sauti.hms.capture.StorageProperties"
+    },
+    {
+      "name": "sauti.storage.region",
+      "type": "java.lang.String",
+      "description": "Signing region; R2 accepts auto.",
+      "sourceType": "ke.sauti.hms.capture.StorageProperties"
+    },
+    {
+      "name": "sauti.storage.create-bucket",
+      "type": "java.lang.Boolean",
+      "description": "Create the bucket at startup if missing; development and tests only.",
+      "sourceType": "ke.sauti.hms.capture.StorageProperties"
+    },
+    {
+      "name": "sauti.time-zone",
+      "type": "java.lang.String",
+      "description": "The facility's time zone, for local days such as queue number resets.",
+      "sourceType": "ke.sauti.hms.common.time.FacilityTime",
+      "defaultValue": "Africa/Nairobi"
     }
   ]
 }

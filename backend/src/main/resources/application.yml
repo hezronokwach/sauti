@@ -52,6 +52,14 @@ sauti:
     email: ${FIRST_ADMIN_EMAIL:}
     password: ${FIRST_ADMIN_PASSWORD:}
     name: ${FIRST_ADMIN_NAME:Administrator}
+  storage:
+    # S3-compatible storage for encrypted audio pieces.
+    endpoint: ${STORAGE_ENDPOINT:}
+    bucket: ${STORAGE_BUCKET:sauti-audio}
+    access-key: ${STORAGE_ACCESS_KEY:}
+    secret-key: ${STORAGE_SECRET_KEY:}
+    region: ${STORAGE_REGION:auto}
+    create-bucket: false
   crypto:
     # 32 random bytes each, Base64 (openssl rand -base64 32). Never the same key twice.
     encryption-key: ${APP_ENCRYPTION_KEY:}
