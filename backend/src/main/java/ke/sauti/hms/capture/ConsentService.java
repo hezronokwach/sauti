@@ -109,7 +109,9 @@ public class ConsentService {
         }
     }
 
-    private boolean isAgreed(UUID visitId, ConsentPurpose purpose) {
+    /** Whether the latest decision for this visit and purpose is AGREED. */
+    @Transactional(readOnly = true)
+    public boolean isAgreed(UUID visitId, ConsentPurpose purpose) {
         return repository
                 .findFirstByVisitIdAndPurposeOrderByRecordedAtDescIdDesc(visitId, purpose)
                 .map(consent -> consent.getDecision() == ConsentDecision.AGREED)
