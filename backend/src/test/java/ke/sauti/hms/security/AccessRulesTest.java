@@ -48,6 +48,9 @@ class AccessRulesTest {
 
     private static final Set<StaffRole> ANY_ROLE = EnumSet.allOf(StaffRole.class);
     private static final Set<StaffRole> ADMIN = EnumSet.of(StaffRole.ADMIN);
+    private static final Set<StaffRole> CLINICIANS = EnumSet.of(StaffRole.NURSE, StaffRole.DOCTOR);
+    private static final Set<StaffRole> FIND_PATIENTS =
+            EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.NURSE, StaffRole.DOCTOR, StaffRole.CASHIER);
 
     /**
      * One row per endpoint.
@@ -70,7 +73,16 @@ class AccessRulesTest {
             new Rule(HttpMethod.GET, "/api/test/ping", ANY_ROLE),
             new Rule(HttpMethod.GET, "/api/admin/staff", ADMIN),
             new Rule(HttpMethod.POST, "/api/admin/staff", ADMIN),
-            new Rule(HttpMethod.POST, "/api/admin/staff/" + UUID.randomUUID() + "/disable", ADMIN));
+            new Rule(HttpMethod.POST, "/api/admin/staff/" + UUID.randomUUID() + "/disable", ADMIN),
+            new Rule(HttpMethod.GET, "/api/patients?q=achi", FIND_PATIENTS),
+            new Rule(HttpMethod.POST, "/api/patients", EnumSet.of(StaffRole.RECEPTIONIST)),
+            new Rule(HttpMethod.GET, "/api/patients/" + UUID.randomUUID(), FIND_PATIENTS),
+            new Rule(HttpMethod.GET, "/api/patients/" + UUID.randomUUID() + "/allergies", CLINICIANS),
+            new Rule(HttpMethod.POST, "/api/patients/" + UUID.randomUUID() + "/allergies", CLINICIANS),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/patients/" + UUID.randomUUID() + "/allergies/" + UUID.randomUUID() + "/entered-in-error",
+                    CLINICIANS));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(

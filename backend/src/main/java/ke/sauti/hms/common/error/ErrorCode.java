@@ -20,6 +20,7 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "Not found"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "This method is not allowed here"),
     CONFLICT(HttpStatus.CONFLICT, "The change conflicts with existing data"),
+    DUPLICATE_PATIENT(HttpStatus.CONFLICT, "A patient with this phone number or national ID is already registered"),
     STALE_VERSION(HttpStatus.CONFLICT, "This record was changed by someone else; reload and try again"),
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "This content type is not supported"),
     BUSINESS_RULE_VIOLATED(HttpStatus.UNPROCESSABLE_CONTENT, "The request breaks a rule"),
