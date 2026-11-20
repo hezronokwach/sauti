@@ -2,9 +2,12 @@ package ke.sauti.hms.security;
 
 import java.time.Clock;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorizationEventPublisher;
+import org.springframework.security.authorization.SpringAuthorizationEventPublisher;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,8 +27,8 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * The HTTP security setup.
  * <ul>
  *   <li>Public: the login and code steps, the health check and the error page; everything
- *       else needs a logged-in session. Role rules sit on the endpoints themselves
- *       ({@code @PreAuthorize}).
+ *       else needs a logged-in session. {@code /api/admin/**} needs ADMIN here, before
+ *       the body is read; other role rules sit on the endpoints ({@code @PreAuthorize}).
  *   <li>The logged-in person lives in the session (PostgreSQL, through Spring Session).
  *       The session cookie flags and the 15-minute idle timeout are in application.yml;
  *       {@link SessionAgeLimitFilter} adds the 8-hour cap.
@@ -65,19 +68,30 @@ public class SecurityConfiguration {
         return repository;
     }
 
+    /** Makes URL rules and {@code @PreAuthorize} publish denials, for {@link AccessDeniedAuditor}. */
+    @Bean
+    AuthorizationEventPublisher authorizationEventPublisher(ApplicationEventPublisher publisher) {
+        return new SpringAuthorizationEventPublisher(publisher);
+    }
+
     @Bean
     SecurityFilterChain apiSecurity(
             HttpSecurity http,
             SecurityContextRepository contextRepository,
             CsrfTokenRepository csrfTokenRepository,
             Clock clock,
-            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
-        SecurityErrorResponder errors = new SecurityErrorResponder(exceptionResolver);
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver,
+            AccessDeniedAuditor accessDeniedAuditor) {
+        SecurityErrorResponder errors = new SecurityErrorResponder(exceptionResolver, accessDeniedAuditor);
         http.authorizeHttpRequests(
                         requests -> requests.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/code")
                                 .permitAll()
                                 .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                                 .permitAll()
+                                // Checked before the request body is read, so a non-admin learns
+                                // nothing from validation errors; @PreAuthorize repeats it.
+                                .requestMatchers("/api/admin/**")
+                                .hasRole("ADMIN")
                                 .anyRequest()
                                 .authenticated())
                 .securityContext(context -> context.securityContextRepository(contextRepository))

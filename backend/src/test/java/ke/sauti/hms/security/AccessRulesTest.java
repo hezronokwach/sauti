@@ -1,7 +1,6 @@
 package ke.sauti.hms.security;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +18,7 @@ import ke.sauti.hms.TestcontainersConfiguration;
 import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
+import ke.sauti.hms.support.ApiBrowser;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +47,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 class AccessRulesTest {
 
     private static final Set<StaffRole> ANY_ROLE = EnumSet.allOf(StaffRole.class);
+    private static final Set<StaffRole> ADMIN = EnumSet.of(StaffRole.ADMIN);
 
     /**
      * One row per endpoint.
@@ -67,7 +68,9 @@ class AccessRulesTest {
             new Rule(HttpMethod.GET, "/api/auth/me", ANY_ROLE),
             new Rule(HttpMethod.POST, "/api/auth/logout", ANY_ROLE),
             new Rule(HttpMethod.GET, "/api/test/ping", ANY_ROLE),
-            new Rule(HttpMethod.GET, "/api/test/admin-only", EnumSet.of(StaffRole.ADMIN)));
+            new Rule(HttpMethod.GET, "/api/admin/staff", ADMIN),
+            new Rule(HttpMethod.POST, "/api/admin/staff", ADMIN),
+            new Rule(HttpMethod.POST, "/api/admin/staff/" + UUID.randomUUID() + "/disable", ADMIN));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(
@@ -100,7 +103,7 @@ class AccessRulesTest {
     }
 
     private static MockHttpServletRequestBuilder call(Rule rule) {
-        return request(rule.method(), rule.path()).with(csrf());
+        return request(rule.method(), rule.path()).with(ApiBrowser.validCsrfToken());
     }
 
     private MockHttpServletRequestBuilder callAs(Rule rule, StaffRole role) {
@@ -145,12 +148,13 @@ class AccessRulesTest {
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 
+    /** Past the access rules; the request itself may still be refused (an empty body is a 400). */
     @ParameterizedTest(name = "{0} as {1}")
     @MethodSource("rightRoles")
     void aListedRoleGetsThrough(Rule rule, StaffRole role) throws Exception {
         int status = mvc.perform(callAs(rule, role)).andReturn().getResponse().getStatus();
 
-        Assertions.assertThat(status).as(rule + " as " + role).isLessThan(400);
+        Assertions.assertThat(status).as(rule + " as " + role).isNotIn(401, 403);
     }
 
     @ParameterizedTest(name = "{0} is public")
