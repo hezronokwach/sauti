@@ -1,7 +1,6 @@
 package ke.sauti.hms.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,10 +15,10 @@ import ke.sauti.hms.security.totp.TotpGenerator;
 import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
+import ke.sauti.hms.support.ApiBrowser;
 import ke.sauti.hms.support.FixedClockConfiguration;
 import ke.sauti.hms.support.MutableClock;
 import ke.sauti.hms.support.MutableClockConfiguration;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,21 +74,13 @@ class LoginFlowTest {
         clock.set(FixedClockConfiguration.NOW);
     }
 
-    /** One browser: keeps the session cookie between requests and sends a CSRF token. */
+    /** One browser, with real cookies and the real CSRF header (see {@link ApiBrowser}). */
     private final class Browser {
 
-        private @Nullable Cookie session;
+        private final ApiBrowser browser = new ApiBrowser(mvc);
 
         ResultActions send(MockHttpServletRequestBuilder request) throws Exception {
-            if (session != null) {
-                request.cookie(session);
-            }
-            ResultActions result = mvc.perform(request.with(csrf()));
-            Cookie updated = result.andReturn().getResponse().getCookie("SESSION");
-            if (updated != null) {
-                session = updated.getMaxAge() == 0 ? null : updated;
-            }
-            return result;
+            return browser.send(request);
         }
 
         ResultActions login(String email, String password) throws Exception {
@@ -105,8 +96,7 @@ class LoginFlowTest {
         }
 
         String sessionValue() {
-            assertThat(session).isNotNull();
-            return session.getValue();
+            return browser.session();
         }
     }
 
@@ -333,7 +323,8 @@ class LoginFlowTest {
     @Test
     void aChangingRequestWithoutTheCsrfTokenIsRefused() throws Exception {
         mvc.perform(json(post("/api/auth/login"), Map.of("email", email(), "password", PASSWORD)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("CSRF_TOKEN_INVALID"));
     }
 
     // ---- me and logout ------------------------------------------------------------

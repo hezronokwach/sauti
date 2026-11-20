@@ -14,9 +14,14 @@ import ke.sauti.hms.security.dto.LoginPasswordRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.csrf.CsrfAuthenticationStrategy;
+import org.springframework.security.web.csrf.CsrfLogoutHandler;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,11 +39,19 @@ public class AuthController {
 
     private final LoginService loginService;
     private final SecurityContextRepository contextRepository;
+    private final CsrfTokenRepository csrfTokenRepository;
+    private final CsrfAuthenticationStrategy csrfRotation;
     private final Clock clock;
 
-    public AuthController(LoginService loginService, SecurityContextRepository contextRepository, Clock clock) {
+    public AuthController(
+            LoginService loginService,
+            SecurityContextRepository contextRepository,
+            CsrfTokenRepository csrfTokenRepository,
+            Clock clock) {
         this.loginService = loginService;
         this.contextRepository = contextRepository;
+        this.csrfTokenRepository = csrfTokenRepository;
+        this.csrfRotation = csrfRotation(csrfTokenRepository);
         this.clock = clock;
     }
 
@@ -94,6 +107,7 @@ public class AuthController {
             case CodeStep.LoggedIn loggedIn -> {
                 session.removeAttribute(PendingLogin.ATTRIBUTE);
                 saveNewContext(request, response);
+                request.getSession().setAttribute(SessionAgeLimitFilter.LOGIN_AT, clock.instant());
                 yield CurrentStaffResponse.of(loggedIn.principal());
             }
         };
@@ -126,14 +140,32 @@ public class AuthController {
         SecurityContextLogoutHandler logout = new SecurityContextLogoutHandler();
         logout.setSecurityContextRepository(contextRepository);
         logout.logout(request, response, authentication);
+        new CsrfLogoutHandler(csrfTokenRepository).logout(request, response, authentication);
     }
 
     /**
      * Gives the session a new id before storing the context, so a session id planted
-     * before the change (session fixation) is worthless afterwards.
+     * before the change (session fixation) is worthless afterwards, and replaces the CSRF
+     * token for the same reason. Spring does both itself only for its own login filters.
      */
     private void saveNewContext(HttpServletRequest request, HttpServletResponse response) {
         request.changeSessionId();
-        contextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
+        SecurityContext context = SecurityContextHolder.getContext();
+        contextRepository.saveContext(context, request, response);
+        csrfRotation.onAuthentication(context.getAuthentication(), request, response);
+    }
+
+    /**
+     * Replaces the CSRF token and writes the new cookie in the same response. The
+     * strategy's default handler only saves a new token once something reads it, which
+     * nothing does here; with no request attribute name, the handler reads it at once,
+     * as {@code csrf.spa()} does for every request.
+     */
+    private static CsrfAuthenticationStrategy csrfRotation(CsrfTokenRepository repository) {
+        XorCsrfTokenRequestAttributeHandler eager = new XorCsrfTokenRequestAttributeHandler();
+        eager.setCsrfRequestAttributeName(null);
+        CsrfAuthenticationStrategy strategy = new CsrfAuthenticationStrategy(repository);
+        strategy.setRequestHandler(eager);
+        return strategy;
     }
 }
