@@ -16,3 +16,6 @@ sauti:
     access-key: test
     secret-key: test # gitleaks:allow
     region: us-east-1
+  jobs:
+    # Tests run the worker step by step.
+    enabled: false
