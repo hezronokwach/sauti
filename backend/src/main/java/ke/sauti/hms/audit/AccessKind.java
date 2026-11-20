@@ -4,5 +4,9 @@ package ke.sauti.hms.audit;
 public enum AccessKind {
     NOTE_OPENED,
     TRANSCRIPT_OPENED,
-    AUDIO_PLAYED
+    AUDIO_PLAYED,
+    REASON_FOR_VISIT_VIEWED,
+    ALLERGIES_VIEWED,
+    VITALS_VIEWED,
+    PRESCRIPTION_OPENED
 }
