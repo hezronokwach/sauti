@@ -101,6 +101,42 @@
       "description": "Milliseconds between recoveries of stuck jobs.",
       "sourceType": "ke.sauti.hms.jobs.JobWorker",
       "defaultValue": 60000
+    },
+    {
+      "name": "sauti.transcription.provider",
+      "type": "java.lang.String",
+      "description": "Which transcriber to use: fake (development and tests) or groq.",
+      "defaultValue": "fake"
+    },
+    {
+      "name": "sauti.transcription.groq.base-url",
+      "type": "java.lang.String",
+      "description": "Groq's OpenAI-compatible API root.",
+      "sourceType": "ke.sauti.hms.capture.GroqProperties"
+    },
+    {
+      "name": "sauti.transcription.groq.api-key",
+      "type": "java.lang.String",
+      "description": "Groq API key. Set through GROQ_API_KEY.",
+      "sourceType": "ke.sauti.hms.capture.GroqProperties"
+    },
+    {
+      "name": "sauti.transcription.groq.model",
+      "type": "java.lang.String",
+      "description": "Whisper model name.",
+      "sourceType": "ke.sauti.hms.capture.GroqProperties"
+    },
+    {
+      "name": "sauti.transcription.groq.connect-timeout",
+      "type": "java.time.Duration",
+      "description": "Connection timeout for Groq.",
+      "sourceType": "ke.sauti.hms.capture.GroqProperties"
+    },
+    {
+      "name": "sauti.transcription.groq.read-timeout",
+      "type": "java.time.Duration",
+      "description": "How long to wait for a transcription.",
+      "sourceType": "ke.sauti.hms.capture.GroqProperties"
     }
   ]
 }

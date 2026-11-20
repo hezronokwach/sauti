@@ -60,6 +60,15 @@ sauti:
     secret-key: ${STORAGE_SECRET_KEY:}
     region: ${STORAGE_REGION:auto}
     create-bucket: false
+  transcription:
+    # fake (development and tests) or groq (demo, needs GROQ_API_KEY).
+    provider: fake
+    groq:
+      base-url: https://api.groq.com/openai/v1
+      api-key: ${GROQ_API_KEY:}
+      model: whisper-large-v3
+      connect-timeout: 5s
+      read-timeout: 60s
   crypto:
     # 32 random bytes each, Base64 (openssl rand -base64 32). Never the same key twice.
     encryption-key: ${APP_ENCRYPTION_KEY:}
