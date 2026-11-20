@@ -49,6 +49,8 @@ class AccessRulesTest {
     private static final Set<StaffRole> ANY_ROLE = EnumSet.allOf(StaffRole.class);
     private static final Set<StaffRole> ADMIN = EnumSet.of(StaffRole.ADMIN);
     private static final Set<StaffRole> CLINICIANS = EnumSet.of(StaffRole.NURSE, StaffRole.DOCTOR);
+    private static final Set<StaffRole> ASK_CONSENT =
+            EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.NURSE, StaffRole.DOCTOR);
     private static final Set<StaffRole> FIND_PATIENTS =
             EnumSet.of(StaffRole.RECEPTIONIST, StaffRole.NURSE, StaffRole.DOCTOR, StaffRole.CASHIER);
 
@@ -88,7 +90,10 @@ class AccessRulesTest {
             new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID(), FIND_PATIENTS),
             new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/take", CLINICIANS),
             new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/status", FIND_PATIENTS),
-            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/reason", FIND_PATIENTS));
+            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/reason", FIND_PATIENTS),
+            new Rule(HttpMethod.GET, "/api/consent/wording?language=SWAHILI", ASK_CONSENT),
+            new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT),
+            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(
