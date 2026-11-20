@@ -80,6 +80,27 @@
       "description": "The facility's time zone, for local days such as queue number resets.",
       "sourceType": "ke.sauti.hms.common.time.FacilityTime",
       "defaultValue": "Africa/Nairobi"
+    },
+    {
+      "name": "sauti.jobs.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether the background job worker runs; tests switch it off and drive it directly.",
+      "sourceType": "ke.sauti.hms.jobs.JobWorker",
+      "defaultValue": true
+    },
+    {
+      "name": "sauti.jobs.poll-ms",
+      "type": "java.lang.Long",
+      "description": "Milliseconds between job polls.",
+      "sourceType": "ke.sauti.hms.jobs.JobWorker",
+      "defaultValue": 1000
+    },
+    {
+      "name": "sauti.jobs.recover-ms",
+      "type": "java.lang.Long",
+      "description": "Milliseconds between recoveries of stuck jobs.",
+      "sourceType": "ke.sauti.hms.jobs.JobWorker",
+      "defaultValue": 60000
     }
   ]
 }
