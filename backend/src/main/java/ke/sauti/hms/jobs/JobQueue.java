@@ -28,6 +28,12 @@ public class JobQueue {
     /** Queues a job to run as soon as a worker is free; returns its id. */
     @Transactional(propagation = Propagation.MANDATORY)
     public UUID enqueue(String type, UUID payloadId) {
+        return enqueueAt(type, payloadId, clock.instant());
+    }
+
+    /** Queues a job to run no earlier than the given time; returns its id. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public UUID enqueueAt(String type, UUID payloadId, Instant runAfter) {
         UUID id = UUID.randomUUID();
         Instant now = clock.instant();
         jdbc.update(
@@ -36,7 +42,7 @@ public class JobQueue {
                 id,
                 type,
                 payloadId,
-                Timestamp.from(now),
+                Timestamp.from(runAfter),
                 Timestamp.from(now),
                 Timestamp.from(now));
         return id;

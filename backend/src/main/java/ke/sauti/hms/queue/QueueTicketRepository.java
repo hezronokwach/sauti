@@ -16,6 +16,8 @@ public interface QueueTicketRepository extends JpaRepository<QueueTicket, UUID> 
     @Query("select t from QueueTicket t where t.id = ?1")
     Optional<QueueTicket> lockById(UUID id);
 
+    Optional<QueueTicket> findByTicketDateAndCode(LocalDate ticketDate, String code);
+
     List<QueueTicket> findByTicketDateAndStatusInOrderByArrivedAtAscNumberAsc(
             LocalDate ticketDate, Collection<TicketStatus> statuses);
 

@@ -91,6 +91,11 @@ public class SecurityConfiguration {
                                 // The waiting-area display: ticket codes only, no login.
                                 .requestMatchers(HttpMethod.GET, "/api/public/queue-board")
                                 .permitAll()
+                                // The pre-registration page: saves only, answers with a ticket code.
+                                .requestMatchers(HttpMethod.POST, "/api/public/pre-registrations")
+                                .permitAll()
+                                .requestMatchers("/api/pre-registrations/**")
+                                .hasRole("RECEPTIONIST")
                                 // Checked before the request body is read, so a non-admin learns
                                 // nothing from validation errors; @PreAuthorize repeats it.
                                 .requestMatchers("/api/admin/**")
