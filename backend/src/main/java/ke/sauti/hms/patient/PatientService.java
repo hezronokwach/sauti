@@ -18,6 +18,7 @@ import ke.sauti.hms.common.error.BusinessRuleException;
 import ke.sauti.hms.common.error.NotFoundException;
 import ke.sauti.hms.patient.dto.PatientSummaryResponse;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +41,15 @@ public class PatientService {
     private final KeyedHasher hasher;
     private final AuditService audit;
     private final Clock clock;
+    private final ApplicationEventPublisher events;
 
-    public PatientService(PatientRepository repository, KeyedHasher hasher, AuditService audit, Clock clock) {
+    public PatientService(
+            PatientRepository repository,
+            KeyedHasher hasher,
+            AuditService audit,
+            Clock clock,
+            ApplicationEventPublisher events) {
+        this.events = events;
         this.repository = repository;
         this.hasher = hasher;
         this.audit = audit;
@@ -146,6 +154,7 @@ public class PatientService {
         detail.put("payer", payer.name());
         detail.put("sharedPhoneConfirmed", phoneHash != null && request.confirmedNewPatient());
         audit.record(AuditAction.PATIENT_REGISTERED, PATIENT, saved.getId(), saved.getId(), null, detail);
+        events.publishEvent(new PatientRegisteredEvent(saved.getId(), nationalId != null));
         return saved;
     }
 

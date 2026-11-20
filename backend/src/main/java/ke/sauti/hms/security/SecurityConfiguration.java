@@ -100,6 +100,10 @@ public class SecurityConfiguration {
                                 // nothing from validation errors; @PreAuthorize repeats it.
                                 .requestMatchers("/api/admin/**")
                                 .hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/registry/lookup")
+                                .hasRole("RECEPTIONIST")
+                                .requestMatchers(HttpMethod.GET, "/api/patients/*/eligibility")
+                                .hasAnyRole("RECEPTIONIST", "CASHIER")
                                 .requestMatchers("/api/patients/*/allergies", "/api/patients/*/allergies/**")
                                 .hasAnyRole("NURSE", "DOCTOR")
                                 .requestMatchers(HttpMethod.POST, "/api/patients")
