@@ -10,7 +10,12 @@ public enum ErrorCode {
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "The request has invalid fields"),
     MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, "The request could not be read"),
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "You need to log in"),
+    LOGIN_FAILED(
+            HttpStatus.UNAUTHORIZED,
+            "Login failed. Check your details, or try again in 15 minutes if you have had several attempts"),
+    LOGIN_EXPIRED(HttpStatus.UNAUTHORIZED, "The login has expired; start again"),
     FORBIDDEN(HttpStatus.FORBIDDEN, "You don't have access to this"),
+    PASSWORD_CHANGE_REQUIRED(HttpStatus.FORBIDDEN, "Change your password before continuing"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Not found"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "This method is not allowed here"),
     CONFLICT(HttpStatus.CONFLICT, "The change conflicts with existing data"),

@@ -3,6 +3,8 @@ package ke.sauti.hms.staff;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 class StaffTest {
@@ -82,6 +84,51 @@ class StaffTest {
         assertThat(staff.acceptCodeStep(99)).isFalse();
         assertThat(staff.acceptCodeStep(101)).isTrue();
         assertThat(staff.getLastCodeStep()).isEqualTo(101);
+    }
+
+    @Test
+    void theFifthFailureLocksForFifteenMinutesAndRestartsTheCount() {
+        Staff staff = receptionist();
+        Instant now = Instant.parse("2026-01-01T08:00:00Z");
+
+        for (int i = 1; i < Staff.MAX_FAILED_LOGINS; i++) {
+            assertThat(staff.recordFailedLogin(now)).isFalse();
+        }
+        assertThat(staff.getFailedLogins()).isEqualTo(4);
+        assertThat(staff.isLocked(now)).isFalse();
+
+        assertThat(staff.recordFailedLogin(now)).isTrue();
+
+        assertThat(staff.getFailedLogins()).isZero();
+        assertThat(staff.isLocked(now)).isTrue();
+        assertThat(staff.isLocked(now.plus(Duration.ofMinutes(15)).minusSeconds(1)))
+                .isTrue();
+        assertThat(staff.isLocked(now.plus(Duration.ofMinutes(15)))).isFalse();
+    }
+
+    @Test
+    void aSuccessfulLoginClearsFailuresAndTheLock() {
+        Staff staff = receptionist();
+        Instant now = Instant.parse("2026-01-01T08:00:00Z");
+        staff.recordFailedLogin(now);
+        for (int i = 0; i < Staff.MAX_FAILED_LOGINS; i++) {
+            staff.recordFailedLogin(now);
+        }
+
+        staff.recordSuccessfulLogin();
+
+        assertThat(staff.getFailedLogins()).isZero();
+        assertThat(staff.getLockedUntil()).isNull();
+    }
+
+    @Test
+    void onlyAnActiveAccountIsActive() {
+        Staff staff = receptionist();
+        assertThat(staff.isActive()).isTrue();
+
+        staff.disable();
+
+        assertThat(staff.isActive()).isFalse();
     }
 
     @Test

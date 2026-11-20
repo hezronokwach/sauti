@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
@@ -19,6 +20,12 @@ import ke.sauti.hms.common.persistence.BaseEntity;
 @Entity
 @Table(name = "staff")
 public class Staff extends BaseEntity {
+
+    /** Wrong passwords or codes in a row before the account locks. */
+    public static final int MAX_FAILED_LOGINS = 5;
+
+    /** How long a locked account stays locked. */
+    public static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 
     @Column(name = "full_name", nullable = false, length = 200)
     private String fullName;
@@ -102,6 +109,37 @@ public class Staff extends BaseEntity {
      */
     public void startAuthenticatorSetup(String secret) {
         this.mfaSecret = Objects.requireNonNull(secret, "secret");
+    }
+
+    public boolean isActive() {
+        return status == StaffStatus.ACTIVE;
+    }
+
+    public boolean isLocked(Instant now) {
+        return lockedUntil != null && now.isBefore(lockedUntil);
+    }
+
+    /**
+     * Counts a wrong password or code. The fifth in a row locks the account for
+     * {@link #LOCK_DURATION} and starts the count again, so after the lock ends the
+     * person has another {@value #MAX_FAILED_LOGINS} tries.
+     *
+     * @return whether this failure locked the account
+     */
+    public boolean recordFailedLogin(Instant now) {
+        failedLogins++;
+        if (failedLogins < MAX_FAILED_LOGINS) {
+            return false;
+        }
+        failedLogins = 0;
+        lockedUntil = now.plus(LOCK_DURATION);
+        return true;
+    }
+
+    /** A completed login clears the failure count and any expired lock. */
+    public void recordSuccessfulLogin() {
+        failedLogins = 0;
+        lockedUntil = null;
     }
 
     /** Turns codes on once the person has entered a first correct code from the new authenticator. */
