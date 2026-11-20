@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { ApiRequestError, errorMessage, toApiRequestError } from '../../api/client';
+import { useState } from 'react';
+import { playAt } from './playAudio';
 import { useTranscript } from './useTranscript';
 import type { TranscriptSegmentResponse } from './useTranscript';
 
@@ -22,33 +22,10 @@ function timestamp(ms: number): string {
 export function TranscriptPanel({ sessionId, live }: TranscriptPanelProps) {
   const { segments, erased, error } = useTranscript(sessionId, live);
   const [playError, setPlayError] = useState<string | null>(null);
-  const audio = useRef<HTMLAudioElement | null>(null);
 
   const play = async (segment: TranscriptSegmentResponse) => {
     setPlayError(null);
-    try {
-      const response = await fetch(
-        `/api/captures/${sessionId}/audio?atMs=${String(segment.startMs)}`,
-        { credentials: 'include' },
-      );
-      if (!response.ok) {
-        throw await toApiRequestError(response);
-      }
-      const offsetMs = Number(response.headers.get('X-Piece-Offset-Ms') ?? '0');
-      const url = URL.createObjectURL(await response.blob());
-      audio.current?.pause();
-      const player = new Audio(url);
-      audio.current = player;
-      player.currentTime = Math.max(0, (segment.startMs - offsetMs) / 1000);
-      player.onended = () => {
-        URL.revokeObjectURL(url);
-      };
-      await player.play();
-    } catch (cause) {
-      setPlayError(
-        cause instanceof ApiRequestError ? errorMessage(cause) : 'The audio could not be played',
-      );
-    }
+    setPlayError(await playAt(sessionId, segment.startMs));
   };
 
   if (erased) {

@@ -239,3 +239,35 @@ textarea {
   display: grid;
   gap: 1rem;
 }
+
+/* AI summary */
+.claims {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.claim {
+  padding: 0.75rem;
+  border: 1px solid #d9e2ec;
+  border-radius: 0.5rem;
+}
+
+.claim p {
+  margin: 0.25rem 0;
+}
+
+.claim-failed {
+  border-color: #ba2525;
+  background: #fff5f5;
+}
+
+.claim-quote {
+  font-style: italic;
+  color: #3e4c59;
+}
+
+.claim-ok {
+  color: #1f6f43;
+}

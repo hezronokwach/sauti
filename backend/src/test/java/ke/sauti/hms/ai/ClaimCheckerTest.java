@@ -3,19 +3,22 @@ package ke.sauti.hms.ai;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.UUID;
 import ke.sauti.hms.capture.Confidence;
 import org.junit.jupiter.api.Test;
 
 /** One test per check, against a short mixed Swahili and English consultation. */
 class ClaimCheckerTest {
 
+    private static final UUID SESSION = UUID.randomUUID();
+
     private final ClaimChecker checker = new ClaimChecker(List.of(
-            new ClaimChecker.Line("Habari daktari, nina homa siku tatu.", Confidence.HIGH, 0),
-            new ClaimChecker.Line("Sina homa usiku, but headache every morning.", Confidence.HIGH, 4_000),
-            new ClaimChecker.Line("Nilikunywa Panadol 500 mg mara mbili.", Confidence.REVIEW, 9_000),
-            new ClaimChecker.Line("Sijawahi kutapika.", Confidence.LOW, 14_000),
-            new ClaimChecker.Line("Hakuna hatari kubwa,", Confidence.HIGH, 17_000),
-            new ClaimChecker.Line("ni ugonjwa wa kawaida.", Confidence.HIGH, 19_000)));
+            new ClaimChecker.Line("Habari daktari, nina homa siku tatu.", Confidence.HIGH, 0, SESSION),
+            new ClaimChecker.Line("Sina homa usiku, but headache every morning.", Confidence.HIGH, 4_000, SESSION),
+            new ClaimChecker.Line("Nilikunywa Panadol 500 mg mara mbili.", Confidence.REVIEW, 9_000, SESSION),
+            new ClaimChecker.Line("Sijawahi kutapika.", Confidence.LOW, 14_000, SESSION),
+            new ClaimChecker.Line("Hakuna hatari kubwa,", Confidence.HIGH, 17_000, SESSION),
+            new ClaimChecker.Line("ni ugonjwa wa kawaida.", Confidence.HIGH, 19_000, SESSION)));
 
     @Test
     void aQuoteThatWasSaidIsPresentWhateverTheCaseAndPunctuation() {
@@ -100,6 +103,7 @@ class ClaimCheckerTest {
 
         assertThat(review.checkAudio()).isTrue();
         assertThat(review.startMs()).isEqualTo(9_000);
+        assertThat(review.sessionId()).isEqualTo(SESSION);
         assertThat(low.checkAudio()).isTrue();
         assertThat(high.checkAudio()).isFalse();
     }

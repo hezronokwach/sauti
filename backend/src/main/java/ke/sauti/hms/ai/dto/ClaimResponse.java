@@ -1,5 +1,6 @@
 package ke.sauti.hms.ai.dto;
 
+import java.util.UUID;
 import ke.sauti.hms.ai.CheckedClaim;
 import ke.sauti.hms.ai.ClaimChecker;
 import org.jspecify.annotations.Nullable;
@@ -16,6 +17,7 @@ import org.jspecify.annotations.Nullable;
  * @param numbersMatch every number in the claim was said
  * @param checkAudio the quote comes from an unsure line: listen before accepting
  * @param startMs where to play from, if the quote was found
+ * @param sessionId the recording to play, if the quote was found
  */
 public record ClaimResponse(
         String section,
@@ -26,7 +28,8 @@ public record ClaimResponse(
         boolean negationConsistent,
         boolean numbersMatch,
         boolean checkAudio,
-        @Nullable Integer startMs) {
+        @Nullable Integer startMs,
+        @Nullable UUID sessionId) {
 
     public static ClaimResponse of(CheckedClaim checked) {
         ClaimChecker.Verdict v = checked.verdict();
@@ -39,6 +42,7 @@ public record ClaimResponse(
                 v.negationConsistent(),
                 v.numbersMatch(),
                 v.checkAudio(),
-                v.startMs());
+                v.startMs(),
+                v.sessionId());
     }
 }

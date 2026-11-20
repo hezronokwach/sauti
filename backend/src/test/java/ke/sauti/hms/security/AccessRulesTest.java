@@ -111,7 +111,11 @@ class AccessRulesTest {
                     "/api/visits/" + UUID.randomUUID() + "/note/addenda",
                     EnumSet.of(StaffRole.DOCTOR)),
             new Rule(HttpMethod.GET, "/api/patients/" + UUID.randomUUID() + "/history", EnumSet.of(StaffRole.DOCTOR)),
-            new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/summary", EnumSet.of(StaffRole.DOCTOR)));
+            new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/summary", EnumSet.of(StaffRole.DOCTOR)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/summary/" + UUID.randomUUID() + "/accept",
+                    EnumSet.of(StaffRole.DOCTOR)));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(

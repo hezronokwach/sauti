@@ -117,7 +117,7 @@ public class SummaryService {
         }
 
         ClaimChecker checker = new ClaimChecker(segments.stream()
-                .map(s -> new ClaimChecker.Line(s.getText(), s.getConfidence(), s.getStartMs()))
+                .map(s -> new ClaimChecker.Line(s.getText(), s.getConfidence(), s.getStartMs(), s.getSessionId()))
                 .toList());
         List<CheckedClaim> checked = drafts.stream()
                 .map(d -> new ClinicalAi.DraftClaim(
@@ -130,7 +130,8 @@ public class SummaryService {
                 ai.model(),
                 ai.promptVersion(),
                 AiRequest.OK,
-                JSON.writeValueAsString(drafts),
+                JSON.writeValueAsString(
+                        checked.stream().map(CheckedClaim::claim).toList()),
                 JSON.writeValueAsString(
                         checked.stream().map(CheckedClaim::verdict).toList()),
                 null,
