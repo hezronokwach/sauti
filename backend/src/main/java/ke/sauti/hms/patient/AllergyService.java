@@ -9,12 +9,16 @@ import ke.sauti.hms.common.error.BusinessRuleException;
 import ke.sauti.hms.common.error.ConflictException;
 import ke.sauti.hms.common.error.NotFoundException;
 import ke.sauti.hms.patient.dto.RecordAllergyRequest;
+import ke.sauti.hms.visit.AccessPolicy;
+import ke.sauti.hms.visit.ClinicalData;
+import ke.sauti.hms.visit.VisitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
- * A patient's allergy list. Rules:
+ * A patient's allergy list, for the people looking after the patient (see
+ * {@link AccessPolicy}). Rules:
  * <ul>
  *   <li>Recording an allergy retires an active "no known allergies" entry, since that is
  *       no longer true.
@@ -34,21 +38,28 @@ public class AllergyService {
     private final PatientAllergyRepository repository;
     private final PatientRepository patients;
     private final AuditService audit;
+    private final AccessPolicy accessPolicy;
 
-    public AllergyService(PatientAllergyRepository repository, PatientRepository patients, AuditService audit) {
+    public AllergyService(
+            PatientAllergyRepository repository,
+            PatientRepository patients,
+            AuditService audit,
+            AccessPolicy accessPolicy) {
         this.repository = repository;
         this.patients = patients;
         this.audit = audit;
+        this.accessPolicy = accessPolicy;
     }
 
-    @Transactional(readOnly = true)
-    public List<PatientAllergy> list(UUID patientId) {
-        requirePatient(patientId);
+    /** The patient's allergies, for someone looking after them; the read is access-logged. */
+    public List<PatientAllergy> list(UUID patientId, VisitService.Actor actor) {
+        requireAccess(patientId, actor, true);
         return repository.findByPatientIdOrderByCreatedAtAsc(patientId);
     }
 
-    public PatientAllergy record(UUID patientId, RecordAllergyRequest request, UUID staffId) {
-        requirePatient(patientId);
+    public PatientAllergy record(UUID patientId, RecordAllergyRequest request, VisitService.Actor actor) {
+        requireAccess(patientId, actor, false);
+        UUID staffId = actor.staffId();
         List<PatientAllergy> active = repository.findByPatientIdOrderByCreatedAtAsc(patientId).stream()
                 .filter(PatientAllergy::isActive)
                 .toList();
@@ -82,7 +93,9 @@ public class AllergyService {
                 patientId, substance, blankToNull(request.substanceGroup()), blankToNull(request.reaction()), staffId));
     }
 
-    public PatientAllergy markEnteredInError(UUID patientId, UUID allergyId, String reason, UUID staffId) {
+    public PatientAllergy markEnteredInError(UUID patientId, UUID allergyId, String reason, VisitService.Actor actor) {
+        requireAccess(patientId, actor, false);
+        UUID staffId = actor.staffId();
         PatientAllergy allergy = repository
                 .findByIdAndPatientId(allergyId, patientId)
                 .orElseThrow(() -> new NotFoundException("No such allergy entry for this patient"));
@@ -112,10 +125,12 @@ public class AllergyService {
         return saved;
     }
 
-    private void requirePatient(UUID patientId) {
+    /** An unknown patient is 404; otherwise the care-team policy decides (403, audited). */
+    private void requireAccess(UUID patientId, VisitService.Actor actor, boolean read) {
         if (!patients.existsById(patientId)) {
             throw new NotFoundException("No such patient");
         }
+        accessPolicy.requirePatientAccess(actor, patientId, ClinicalData.ALLERGIES, read);
     }
 
     private static String blankToNull(String value) {

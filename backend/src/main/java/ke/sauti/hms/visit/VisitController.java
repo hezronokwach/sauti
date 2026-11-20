@@ -12,6 +12,7 @@ import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.visit.dto.ChangeVisitStatusRequest;
 import ke.sauti.hms.visit.dto.OpenVisitRequest;
 import ke.sauti.hms.visit.dto.QueueEntryResponse;
+import ke.sauti.hms.visit.dto.ReasonForVisitResponse;
 import ke.sauti.hms.visit.dto.VisitResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -78,6 +79,12 @@ public class VisitController {
     @GetMapping("/{id}")
     public VisitResponse get(@PathVariable UUID id) {
         return VisitResponse.of(service.get(id));
+    }
+
+    /** Clinical: only for someone looking after the visit (see AccessPolicy). */
+    @GetMapping("/{id}/reason")
+    public ReasonForVisitResponse reason(@PathVariable UUID id, @AuthenticationPrincipal AuditActor staff) {
+        return new ReasonForVisitResponse(service.reasonForVisit(id, actor(staff)));
     }
 
     @PostMapping("/{id}/take")
