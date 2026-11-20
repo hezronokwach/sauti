@@ -5,6 +5,8 @@ import { RequireLogin } from '../features/auth/RequireLogin';
 import { ROLE_HOME } from '../features/auth/roles';
 import { SignedInLayout } from '../features/auth/SignedInLayout';
 import type { StaffRole } from '../features/auth/types';
+import { ReceptionPage } from '../features/reception/ReceptionPage';
+import { BillingPage, DoctorPage, TriagePage } from '../features/visits/QueuePages';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { RoleHomePage } from '../pages/RoleHomePage';
 import { RootRedirect } from '../pages/RootRedirect';
@@ -37,10 +39,10 @@ export const routes: RouteObject[] = [
       {
         element: <SignedInLayout />,
         children: [
-          page(ROLE_HOME.RECEPTIONIST, ['RECEPTIONIST'], <RoleHomePage title="Reception" />),
-          page(ROLE_HOME.NURSE, ['NURSE'], <RoleHomePage title="Triage" />),
-          page(ROLE_HOME.DOCTOR, ['DOCTOR'], <RoleHomePage title="Doctor" />),
-          page(ROLE_HOME.CASHIER, ['CASHIER'], <RoleHomePage title="Billing" />),
+          page(ROLE_HOME.RECEPTIONIST, ['RECEPTIONIST'], <ReceptionPage />),
+          page(ROLE_HOME.NURSE, ['NURSE'], <TriagePage />),
+          page(ROLE_HOME.DOCTOR, ['DOCTOR'], <DoctorPage />),
+          page(ROLE_HOME.CASHIER, ['CASHIER'], <BillingPage />),
           page(ROLE_HOME.ADMIN, ['ADMIN'], <RoleHomePage title="Administration" />),
         ],
       },

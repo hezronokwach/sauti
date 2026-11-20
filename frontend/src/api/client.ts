@@ -20,14 +20,17 @@ export class ApiRequestError extends Error {
   readonly code: string;
   readonly fieldErrors: ApiFieldError[];
   readonly requestId: string | null;
+  /** The whole response body, for errors that carry more than the standard fields. */
+  readonly body: unknown;
 
-  constructor(status: number, error: ApiError) {
+  constructor(status: number, error: ApiError, body: unknown = error) {
     super(error.message);
     this.name = 'ApiRequestError';
     this.status = status;
     this.code = error.code;
     this.fieldErrors = error.fieldErrors;
     this.requestId = error.requestId;
+    this.body = body;
   }
 }
 
@@ -135,10 +138,11 @@ export async function toApiRequestError(response: Response): Promise<ApiRequestE
   try {
     const body: unknown = await response.json();
     if (isApiError(body)) {
-      return new ApiRequestError(response.status, {
-        ...body,
-        requestId: body.requestId ?? headerRequestId,
-      });
+      return new ApiRequestError(
+        response.status,
+        { ...body, requestId: body.requestId ?? headerRequestId },
+        body,
+      );
     }
   } catch {
     // Not JSON (for example a proxy error page): fall through to a generic error.
