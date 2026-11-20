@@ -10,3 +10,9 @@ sauti:
     # Test only, not secret.
     encryption-key: 2siE80h7Mi8O18091FZBA/I3Wm6lZHtxmUe1C0d5ssk= # gitleaks:allow
     hash-key: OsFzZqqzZek8HPtPeU4t8Civx+RwrrjO8AhYkPMVZJM= # gitleaks:allow
+  storage:
+    # Tests that touch storage start SeaweedFS and override the endpoint.
+    endpoint: http://localhost:1
+    access-key: test
+    secret-key: test # gitleaks:allow
+    region: us-east-1
