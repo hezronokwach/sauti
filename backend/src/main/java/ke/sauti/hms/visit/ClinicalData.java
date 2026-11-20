@@ -14,6 +14,8 @@ public enum ClinicalData {
     TRANSCRIPT(AccessKind.TRANSCRIPT_OPENED),
     AUDIO(AccessKind.AUDIO_PLAYED),
     PRESCRIPTION(AccessKind.PRESCRIPTION_OPENED),
+    /** Recording consent decisions. */
+    CONSENT(AccessKind.CONSENT_VIEWED),
     /** A signed note from an earlier visit of the same patient. */
     PAST_SIGNED_NOTE(AccessKind.NOTE_OPENED),
     /** A prescription from an earlier visit of the same patient. */
