@@ -115,6 +115,10 @@ public class PatientAllergy extends BaseEntity {
         return recordedBy;
     }
 
+    public UUID getEnteredInErrorBy() {
+        return enteredInErrorBy;
+    }
+
     public String getEnteredInErrorReason() {
         return enteredInErrorReason;
     }
