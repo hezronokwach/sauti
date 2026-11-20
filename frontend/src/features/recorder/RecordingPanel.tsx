@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { apiPost, errorMessage } from '../../api/client';
+import { apiFetch, apiPost, errorMessage } from '../../api/client';
 import type { ConsentPurpose } from '../consent/api';
 import { isAgreed, useConsentHistory } from '../consent/api';
 import { ConsentPanel } from '../consent/ConsentPanel';
 import type { PreferredLanguage } from '../patients/types';
+import { TranscriptPanel } from '../transcript/TranscriptPanel';
 import { onUploadStatus, uploader } from './background';
 import { Recorder } from './recorder';
 import type { RecorderStatus } from './recorder';
@@ -35,6 +36,8 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
   const agreed = isAgreed(history.data, purpose);
   const recorder = useRef<Recorder | null>(null);
   const sessionId = useRef<string | null>(null);
+  const [session, setSession] = useState<{ id: string; status: string } | null>(null);
+  const [confirmErase, setConfirmErase] = useState(false);
   const [status, setStatus] = useState<RecorderStatus>({ state: 'idle', elapsedMs: 0, level: 0 });
   const [uploads, setUploads] = useState<UploadStatus>({
     pending: 0,
@@ -54,6 +57,8 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
         languageHint: language === 'SWAHILI' ? 'sw' : 'en',
       });
       sessionId.current = session.id;
+      setSession({ id: session.id, status: 'RECORDING' });
+      setConfirmErase(false);
       recorder.current = new Recorder(session.id, uploader, setStatus);
       await recorder.current.start();
     } catch (cause) {
@@ -76,11 +81,51 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
     }
     const expectedPieces = await active.stop();
     try {
-      await apiPost(`/api/captures/${id}/stop`, { expectedPieces });
+      const stopped = await apiPost<CaptureSessionResponse>(`/api/captures/${id}/stop`, {
+        expectedPieces,
+      });
+      setSession({ id, status: stopped.status });
     } catch (cause) {
       setError(errorMessage(cause));
     }
   };
+
+  const erase = async () => {
+    const id = sessionId.current;
+    if (!id) {
+      return;
+    }
+    if (recorder.current) {
+      await stop();
+    }
+    try {
+      await apiPost(`/api/captures/${id}/erase`);
+      setSession({ id, status: 'ERASED' });
+      setConfirmErase(false);
+    } catch (cause) {
+      setError(errorMessage(cause));
+    }
+  };
+
+  // After stopping, check the session until every piece is transcribed, so the
+  // transcript keeps filling in until it is complete.
+  useEffect(() => {
+    if (session?.status !== 'STOPPED') {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      void apiFetch<CaptureSessionResponse>(`/api/captures/${session.id}`)
+        .then((current) => {
+          if (current.status !== 'STOPPED') {
+            setSession({ id: session.id, status: current.status });
+          }
+        })
+        .catch(() => undefined);
+    }, 2_000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [session]);
 
   // A withdrawal while recording stops the recorder (the server stops the session too).
   useEffect(() => {
@@ -138,10 +183,48 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
             Record
           </button>
         )}
+        {session && session.status !== 'ERASED' && !recording ? (
+          confirmErase ? (
+            <div className="actions">
+              <span>Erase this recording and its transcript? This cannot be undone.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  void erase();
+                }}
+              >
+                Yes, erase
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmErase(false);
+                }}
+              >
+                Keep it
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmErase(true);
+              }}
+            >
+              Erase recording
+            </button>
+          )
+        ) : null}
         {!agreed && !recording ? (
           <p className="quiet">Recording needs the patient&apos;s consent.</p>
         ) : null}
       </section>
+      {session ? (
+        <TranscriptPanel
+          sessionId={session.id}
+          live={recording || session.status === 'RECORDING' || session.status === 'STOPPED'}
+        />
+      ) : null}
     </div>
   );
 }
