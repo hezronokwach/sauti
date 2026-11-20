@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ApiRequestError, errorMessage } from '../../api/client';
+import { acceptClaims } from '../summary/api';
+import { SummaryDrawer } from '../summary/SummaryDrawer';
 import { fetchNote, signNote } from './api';
 import type { NoteResponse } from './types';
 import { SECTIONS } from './types';
@@ -21,8 +23,8 @@ interface NoteEditorProps {
   onSigned: (note: NoteResponse) => void;
 }
 
-/** The signing failure to show: the backend's own words, even for a 403 wrong code. */
-function signFailure(error: unknown): string {
+/** The failure to show: the backend's own words, even for a 403 wrong code or a refused claim. */
+function backendReason(error: unknown): string {
   return error instanceof ApiRequestError ? error.message : errorMessage(error);
 }
 
@@ -36,6 +38,21 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
   const [code, setCode] = useState('');
   const [signError, setSignError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  /** Saves the doctor's own typing first, then adds the claims and shows the note as it now is. */
+  const acceptFromSummary = async (requestId: string, claims: number[]): Promise<string | null> => {
+    if (!(await draft.saveNow())) {
+      return draft.inConflict()
+        ? 'The note changed elsewhere; reload it before accepting claims.'
+        : 'The note could not be saved, so nothing was added. Try again.';
+    }
+    try {
+      draft.reload(await acceptClaims(visitId, requestId, claims, draft.version()));
+      return null;
+    } catch (failure) {
+      return backendReason(failure);
+    }
+  };
 
   const reload = async () => {
     try {
@@ -71,7 +88,7 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
       }
       onSigned(await signNote(visitId, version, code));
     } catch (failure) {
-      setSignError(signFailure(failure));
+      setSignError(backendReason(failure));
       setCode('');
     } finally {
       setBusy(false);
@@ -113,6 +130,7 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
           />
         </div>
       ))}
+      <SummaryDrawer visitId={visitId} onAccept={acceptFromSummary} />
       {signing ? (
         <form
           className="panel"
