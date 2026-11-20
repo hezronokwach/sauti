@@ -158,5 +158,19 @@ describe('sendPiece', () => {
     );
     expect(headers.get('X-Piece-Duration-Ms')).toBe('30000');
     expect(headers.get('X-Piece-Offset-Ms')).toBe('60000');
+    expect(headers.has('X-Piece-Field')).toBe(false);
+  });
+
+  it('sends the reception field a piece was recorded for', async () => {
+    document.cookie = 'XSRF-TOKEN=t; path=/';
+    const fetchMock = mockApi({
+      'PUT /api/captures/s1/pieces/3': () =>
+        jsonResponse(201, { id: 'p', sequenceNo: 3, status: 'STORED' }),
+    });
+
+    await sendPiece({ ...piece('s1', 3), field: 'RESIDENCE' });
+
+    const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(headers.get('X-Piece-Field')).toBe('RESIDENCE');
   });
 });

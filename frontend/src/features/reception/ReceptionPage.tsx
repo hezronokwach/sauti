@@ -121,6 +121,7 @@ export function ReceptionPage() {
             title="At reception"
             status="AT_RECEPTION"
             action={{ kind: 'move', label: 'Send to triage', to: 'WAITING_TRIAGE' }}
+            openable
           />
           <QueueList title="Waiting for triage" status="WAITING_TRIAGE" />
         </div>
