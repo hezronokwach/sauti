@@ -179,6 +179,7 @@ class AccessRulesTest {
                     HttpMethod.GET,
                     "/api/visits/" + UUID.randomUUID() + "/invoice/payment",
                     EnumSet.of(StaffRole.CASHIER)),
+            new Rule(HttpMethod.GET, "/api/admin/status", EnumSet.of(StaffRole.ADMIN)),
             new Rule(HttpMethod.POST, "/api/queue/tickets", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(HttpMethod.POST, "/api/queue/tickets/call-next", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(
