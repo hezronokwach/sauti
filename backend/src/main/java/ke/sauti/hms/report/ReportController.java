@@ -3,6 +3,7 @@ package ke.sauti.hms.report;
 import java.time.LocalDate;
 import java.util.List;
 import ke.sauti.hms.common.time.FacilityTime;
+import ke.sauti.hms.report.dto.SystemStatusResponse;
 import ke.sauti.hms.report.dto.WaitingTimeRow;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,10 +17,19 @@ public class ReportController {
 
     private final WaitingTimeReport waitingTimes;
     private final FacilityTime facilityTime;
+    private final SystemStatus systemStatus;
 
-    public ReportController(WaitingTimeReport waitingTimes, FacilityTime facilityTime) {
+    public ReportController(WaitingTimeReport waitingTimes, FacilityTime facilityTime, SystemStatus systemStatus) {
         this.waitingTimes = waitingTimes;
+        this.systemStatus = systemStatus;
         this.facilityTime = facilityTime;
+    }
+
+    /** Jobs, backups and refused requests, as counts and times only. */
+    @GetMapping("/api/admin/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public SystemStatusResponse status() {
+        return systemStatus.read();
     }
 
     /** Median and 90th-percentile waits per lane and hour; both dates default to today. */
