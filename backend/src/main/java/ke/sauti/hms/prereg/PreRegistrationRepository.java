@@ -13,4 +13,6 @@ public interface PreRegistrationRepository extends JpaRepository<PreRegistration
     long countByIpHashAndCreatedAtAfter(byte[] ipHash, Instant since);
 
     Optional<PreRegistration> findByTicketId(UUID ticketId);
+
+    long deleteByTicketDateBefore(LocalDate date);
 }
