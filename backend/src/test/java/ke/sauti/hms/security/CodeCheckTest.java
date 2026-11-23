@@ -7,6 +7,7 @@ import java.time.Clock;
 import java.time.ZoneOffset;
 import ke.sauti.hms.common.error.ErrorCode;
 import ke.sauti.hms.common.error.ForbiddenException;
+import ke.sauti.hms.common.ratelimit.RateLimits;
 import ke.sauti.hms.security.totp.TotpGenerator;
 import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.support.FixedClockConfiguration;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class CodeCheckTest {
 
     private final TotpGenerator totp = new TotpGenerator(Clock.fixed(FixedClockConfiguration.NOW, ZoneOffset.UTC));
-    private final CodeCheck check = new CodeCheck(new CodeVerifier(totp));
+    private final CodeCheck check = new CodeCheck(new CodeVerifier(totp), new RateLimits(false));
 
     private String currentCode() {
         return totp.codeFor(CodeVerifierTest.SECRET, totp.currentStep());

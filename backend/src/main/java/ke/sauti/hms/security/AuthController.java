@@ -5,7 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.time.Clock;
+import java.util.Locale;
 import ke.sauti.hms.common.error.ErrorCode;
+import ke.sauti.hms.common.ratelimit.RateLimits;
 import ke.sauti.hms.security.dto.ChangePasswordRequest;
 import ke.sauti.hms.security.dto.CurrentStaffResponse;
 import ke.sauti.hms.security.dto.LoginCodeRequest;
@@ -41,22 +43,26 @@ public class AuthController {
     private final SecurityContextRepository contextRepository;
     private final CsrfTokenRepository csrfTokenRepository;
     private final CsrfAuthenticationStrategy csrfRotation;
+    private final RateLimits limits;
     private final Clock clock;
 
     public AuthController(
             LoginService loginService,
             SecurityContextRepository contextRepository,
             CsrfTokenRepository csrfTokenRepository,
+            RateLimits limits,
             Clock clock) {
         this.loginService = loginService;
         this.contextRepository = contextRepository;
         this.csrfTokenRepository = csrfTokenRepository;
         this.csrfRotation = csrfRotation(csrfTokenRepository);
+        this.limits = limits;
         this.clock = clock;
     }
 
     @PostMapping("/login")
     public LoginNextStepResponse login(@Valid @RequestBody LoginPasswordRequest body, HttpServletRequest request) {
+        limits.check(RateLimits.Limit.LOGIN_ACCOUNT, body.email().strip().toLowerCase(Locale.ROOT));
         HttpSession existing = request.getSession(false);
         if (existing != null) {
             existing.removeAttribute(PendingLogin.ATTRIBUTE);
@@ -96,6 +102,7 @@ public class AuthController {
             throw new LoginException(ErrorCode.LOGIN_EXPIRED);
         }
 
+        limits.check(RateLimits.Limit.CODE_ACCOUNT, pending.staffId().toString());
         CodeStep step = loginService.checkCode(pending, body.code());
         return switch (step) {
             case CodeStep.Failed failed -> {
