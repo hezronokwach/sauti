@@ -5,7 +5,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.EstimationProbe;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.Map;
 import ke.sauti.hms.common.error.RateLimitedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,6 +26,7 @@ public class RateLimits {
 
     private static final String TOO_MANY = "Too many attempts; try again shortly";
     private static final int MAX_KEYS = 100_000;
+    private static final int MAX_REFUSALS = 10_000;
 
     /**
      * Every limit in one place. Address limits are generous because a whole hospital can share
@@ -57,10 +64,40 @@ public class RateLimits {
             .maximumSize(MAX_KEYS)
             .expireAfterAccess(Duration.ofHours(2))
             .build();
-    private final boolean enabled;
+    /** Recent refusals for the status page: which limit and when, never whose. */
+    private final Deque<Refusal> refusals = new ArrayDeque<>();
 
-    public RateLimits(@Value("${sauti.rate-limit.enabled:true}") boolean enabled) {
+    private final boolean enabled;
+    private final Clock clock;
+
+    private record Refusal(Limit limit, Instant at) {}
+
+    public RateLimits(@Value("${sauti.rate-limit.enabled:true}") boolean enabled, Clock clock) {
         this.enabled = enabled;
+        this.clock = clock;
+    }
+
+    /** How many requests each limit refused since the given time, in this app instance. */
+    public Map<Limit, Long> blocksSince(Instant since) {
+        Map<Limit, Long> counts = new EnumMap<>(Limit.class);
+        synchronized (refusals) {
+            for (Refusal refusal : refusals) {
+                if (!refusal.at().isBefore(since)) {
+                    counts.merge(refusal.limit(), 1L, Long::sum);
+                }
+            }
+        }
+        return counts;
+    }
+
+    private RateLimitedException refused(Limit limit, long nanosToWait) {
+        synchronized (refusals) {
+            refusals.addLast(new Refusal(limit, clock.instant()));
+            if (refusals.size() > MAX_REFUSALS) {
+                refusals.pollFirst();
+            }
+        }
+        return new RateLimitedException(TOO_MANY, Duration.ofNanos(nanosToWait));
     }
 
     /** Uses up one request, or refuses with 429 and when to retry. */
@@ -70,7 +107,7 @@ public class RateLimits {
         }
         ConsumptionProbe probe = bucket(limit, key).tryConsumeAndReturnRemaining(1);
         if (!probe.isConsumed()) {
-            throw new RateLimitedException(TOO_MANY, Duration.ofNanos(probe.getNanosToWaitForRefill()));
+            throw refused(limit, probe.getNanosToWaitForRefill());
         }
     }
 
@@ -81,7 +118,7 @@ public class RateLimits {
         }
         EstimationProbe probe = bucket(limit, key).estimateAbilityToConsume(1);
         if (!probe.canBeConsumed()) {
-            throw new RateLimitedException(TOO_MANY, Duration.ofNanos(probe.getNanosToWaitForRefill()));
+            throw refused(limit, probe.getNanosToWaitForRefill());
         }
     }
 

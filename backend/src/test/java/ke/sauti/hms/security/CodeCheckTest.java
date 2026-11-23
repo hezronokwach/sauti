@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class CodeCheckTest {
 
     private final TotpGenerator totp = new TotpGenerator(Clock.fixed(FixedClockConfiguration.NOW, ZoneOffset.UTC));
-    private final CodeCheck check = new CodeCheck(new CodeVerifier(totp), new RateLimits(false));
+    private final CodeCheck check = new CodeCheck(new CodeVerifier(totp), new RateLimits(false, Clock.systemUTC()));
 
     private String currentCode() {
         return totp.codeFor(CodeVerifierTest.SECRET, totp.currentStep());
