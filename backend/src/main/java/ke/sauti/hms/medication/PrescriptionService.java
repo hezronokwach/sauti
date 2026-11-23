@@ -112,11 +112,14 @@ public class PrescriptionService {
     /** The visit's prescription for the care team; the read is access-logged. 404 if none yet. */
     public PrescriptionResponse get(UUID visitId, VisitService.Actor actor) {
         accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.PRESCRIPTION, true);
-        Prescription prescription = prescriptions
-                .findActiveByVisitId(visitId)
+        // A doctor's read may rewrite the alerts, so it takes the same lock as signing.
+        boolean mayRefresh = actor.role() == StaffRole.DOCTOR;
+        Prescription prescription = (mayRefresh
+                        ? prescriptions.lockActiveByVisitId(visitId)
+                        : prescriptions.findActiveByVisitId(visitId))
                 .orElseThrow(() -> new NotFoundException("No prescription for this visit yet"));
         // The patient's allergies may have changed since the last edit.
-        if (prescription.isDraft() && actor.role() == StaffRole.DOCTOR) {
+        if (mayRefresh && prescription.isDraft()) {
             safety.refresh(prescription, actor);
         }
         return respond(prescription, actor);
