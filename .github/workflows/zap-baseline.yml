@@ -1,0 +1,67 @@
+name: ZAP baseline scan
+
+# Run by hand from the Actions tab. It starts the app with its local development services and
+# scans the API without logging in. The baseline scan watches responses and sends no attacks.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zap:
+    name: ZAP baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Start the app
+        working-directory: backend
+        run: |
+          nohup ./mvnw -B -ntp spring-boot:run > app.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fs http://localhost:8080/actuator/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          tail -n 40 app.log
+          exit 1
+
+      # -I keeps ZAP's warnings from failing this step; the next step decides.
+      - name: Scan
+        run: |
+          mkdir -p zap
+          chmod 777 zap
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:2.16.1 zap-baseline.py \
+            -t http://localhost:8080/api/public/queue-board \
+            -J report.json -r report.html -I
+
+      - name: Fail on any high finding
+        run: |
+          python3 - <<'PY'
+          import json
+          report = json.load(open("zap/report.json", encoding="utf-8"))
+          alerts = [alert for site in report["site"] for alert in site.get("alerts", [])]
+          high = [alert["name"] for alert in alerts if alert["riskcode"] == "3"]
+          print(f"{len(alerts)} alert types, {len(high)} high")
+          if high:
+              raise SystemExit("High findings: " + ", ".join(high))
+          PY
+
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zap-report
+          path: zap/report.*
+          retention-days: 14
