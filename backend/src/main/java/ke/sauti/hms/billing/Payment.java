@@ -128,6 +128,18 @@ public class Payment extends BaseEntity {
         this.resolvedAt = at;
     }
 
+    public @Nullable String getResolutionReason() {
+        return resolutionReason;
+    }
+
+    public @Nullable UUID getResolvedBy() {
+        return resolvedBy;
+    }
+
+    public @Nullable Instant getResolvedAt() {
+        return resolvedAt;
+    }
+
     public @Nullable Instant getPromptedAt() {
         return promptedAt;
     }
