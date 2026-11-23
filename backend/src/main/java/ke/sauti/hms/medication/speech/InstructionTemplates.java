@@ -40,8 +40,12 @@ public final class InstructionTemplates {
                 ? word(words, "days.one")
                 : word(words, "days.many")
                         .replace("{number}", NumberWords.of(BigDecimal.valueOf(line.days()), language));
-        return word(words, "line." + line.route())
-                .replace("{dose}", dose)
+        // A single dose has no course length: "once, right now, for five days" would contradict itself.
+        String sentence = word(words, "line." + line.route());
+        if (line.frequency() == Frequency.STAT) {
+            sentence = sentence.replace(", {days}", "");
+        }
+        return sentence.replace("{dose}", dose)
                 .replace(
                         "{frequency}",
                         word(words, "frequency." + line.frequency().name()))

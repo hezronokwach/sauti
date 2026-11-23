@@ -32,10 +32,13 @@ class InstructionTemplatesTest {
         "AS_NEEDED, only when needed, inapohitajika tu",
     })
     void rendersEveryFrequencyInBothLanguages(Frequency frequency, String english, String swahili) {
+        boolean once = frequency == Frequency.STAT;
         assertThat(InstructionTemplates.render(line(frequency), PreferredLanguage.ENGLISH))
-                .isEqualTo("Take five hundred milligrams of Amoxicillin, " + english + ", for five days.");
+                .isEqualTo("Take five hundred milligrams of Amoxicillin, " + english + (once ? "" : ", for five days")
+                        + ".");
         assertThat(InstructionTemplates.render(line(frequency), PreferredLanguage.SWAHILI))
-                .isEqualTo("Meza miligramu mia tano ya Amoxicillin, " + swahili + ", kwa siku tano.");
+                .isEqualTo(
+                        "Meza miligramu mia tano ya Amoxicillin, " + swahili + (once ? "" : ", kwa siku tano") + ".");
     }
 
     @ParameterizedTest
