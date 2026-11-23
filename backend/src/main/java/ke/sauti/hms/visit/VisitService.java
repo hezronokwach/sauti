@@ -89,10 +89,14 @@ public class VisitService {
             throw new ConflictException("This patient already has a visit in progress");
         }
         Instant now = clock.instant();
-        Instant arrived = ticketId == null ? now : tickets.arrivalForVisit(ticketId);
+        QueueTicketService.TicketTimes ticket = ticketId == null ? null : tickets.arrivalForVisit(ticketId);
+        Instant arrived = ticket == null ? now : ticket.arrivedAt();
+        Instant registrationStarted = ticket == null || ticket.calledAt() == null ? now : ticket.calledAt();
         int queueNumber = queueNumbers.next(facilityTime.today());
         String reason = StringUtils.hasText(reasonForVisit) ? reasonForVisit.trim() : null;
-        Visit visit = visits.saveAndFlush(new Visit(patientId, facilityTime.today(), queueNumber, reason, arrived));
+        Visit opening = new Visit(patientId, facilityTime.today(), queueNumber, reason, arrived);
+        opening.startRegistration(registrationStarted);
+        Visit visit = visits.saveAndFlush(opening);
         if (ticketId != null) {
             tickets.markServed(ticketId, visit.getId());
         }
@@ -212,6 +216,9 @@ public class VisitService {
             assignments.save(new CareAssignment(visit.getId(), actor.staffId(), actor.role(), now));
         }
         visit.moveTo(to, now, actor.staffId());
+        if (to == VisitStatus.WAITING_TRIAGE) {
+            visit.completeRegistration(now);
+        }
         history.save(new VisitStatusChange(visit.getId(), from, to, actor.staffId(), now, cancelReason));
         audit.record(
                 AuditAction.VISIT_STATUS_CHANGED,

@@ -152,7 +152,8 @@ class AccessRulesTest {
             new Rule(
                     HttpMethod.POST,
                     "/api/visits/" + UUID.randomUUID() + "/reason/confirm",
-                    EnumSet.of(StaffRole.NURSE)));
+                    EnumSet.of(StaffRole.NURSE)),
+            new Rule(HttpMethod.GET, "/api/admin/reports/waiting-times", ADMIN));
 
     /** Reachable without a session; the request body may still be refused. */
     static final List<Rule> PUBLIC = List.of(

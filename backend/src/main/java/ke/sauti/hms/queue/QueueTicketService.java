@@ -142,15 +142,23 @@ public class QueueTicketService {
      * and keeps the ticket locked until {@link #markServed}.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public Instant arrivalForVisit(UUID ticketId) {
+    public TicketTimes arrivalForVisit(UUID ticketId) {
         QueueTicket ticket = lock(ticketId);
         boolean ready = ticket.getStatus() == TicketStatus.CALLED
                 || (ticket.getLane() == TicketLane.EMERGENCY && ticket.getStatus() == TicketStatus.WAITING);
         if (!ticket.getTicketDate().equals(facilityTime.today()) || !ready) {
             throw new ConflictException("This ticket is not waiting to be seen");
         }
-        return ticket.getArrivedAt();
+        return new TicketTimes(ticket.getArrivedAt(), ticket.getCalledAt());
     }
+
+    /**
+     * When a ticket's patient arrived and was called to the desk.
+     *
+     * @param arrivedAt when the ticket was issued
+     * @param calledAt when it was called; null for an emergency nobody has attended yet
+     */
+    public record TicketTimes(Instant arrivedAt, Instant calledAt) {}
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void markServed(UUID ticketId, UUID visitId) {

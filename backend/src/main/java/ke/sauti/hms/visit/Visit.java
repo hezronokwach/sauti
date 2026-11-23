@@ -48,6 +48,12 @@ public class Visit extends BaseEntity {
     @Column(name = "reason_confirmed_at")
     private Instant reasonConfirmedAt;
 
+    @Column(name = "registration_started_at")
+    private Instant registrationStartedAt;
+
+    @Column(name = "registration_completed_at")
+    private Instant registrationCompletedAt;
+
     @Column(name = "arrived_at", nullable = false, updatable = false)
     private Instant arrivedAt;
 
@@ -109,6 +115,25 @@ public class Visit extends BaseEntity {
         this.reasonForVisit = reason;
         this.reasonConfirmedBy = null;
         this.reasonConfirmedAt = null;
+    }
+
+    void startRegistration(Instant at) {
+        this.registrationStartedAt = at;
+    }
+
+    /** The first time the visit goes on to triage ends registration; later moves do not change it. */
+    void completeRegistration(Instant at) {
+        if (registrationCompletedAt == null && registrationStartedAt != null) {
+            this.registrationCompletedAt = at;
+        }
+    }
+
+    public Instant getRegistrationStartedAt() {
+        return registrationStartedAt;
+    }
+
+    public Instant getRegistrationCompletedAt() {
+        return registrationCompletedAt;
     }
 
     void confirmReason(UUID nurseId, Instant at) {
