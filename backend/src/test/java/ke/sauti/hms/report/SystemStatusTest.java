@@ -123,7 +123,7 @@ class SystemStatusTest {
     void refusedRequestsAreCountedForADay() {
         MutableClock clock = new MutableClock(Instant.parse("2026-11-24T08:00:00Z"));
         RateLimits limits = new RateLimits(true, clock);
-        for (int i = 0; i < Limit.LOGIN_ACCOUNT.capacity(); i++) {
+        for (long i = 0; i < Limit.LOGIN_ACCOUNT.capacity(); i++) {
             limits.check(Limit.LOGIN_ACCOUNT, "someone");
         }
         assertThatThrownBy(() -> limits.check(Limit.LOGIN_ACCOUNT, "someone")).isInstanceOf(RateLimitedException.class);
