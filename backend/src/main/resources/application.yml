@@ -79,6 +79,14 @@ sauti:
       model: openai/gpt-oss-120b
       connect-timeout: 5s
       read-timeout: 20s
+  speech:
+    # browser (the browser speaks the text), azure (needs a key) or fake (tests).
+    provider: ${SPEECH_PROVIDER:browser}
+    azure:
+      region: ${AZURE_SPEECH_REGION:}
+      api-key: ${AZURE_SPEECH_KEY:}
+      connect-timeout: 5s
+      read-timeout: 15s
   crypto:
     # 32 random bytes each, Base64 (openssl rand -base64 32). Never the same key twice.
     encryption-key: ${APP_ENCRYPTION_KEY:}

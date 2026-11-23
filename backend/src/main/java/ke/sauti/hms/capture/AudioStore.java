@@ -1,6 +1,7 @@
 package ke.sauti.hms.capture;
 
 import java.net.URI;
+import java.util.Optional;
 import ke.sauti.hms.common.crypto.ColumnCipher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 /**
  * Audio pieces in S3-compatible storage, always encrypted with the app key
@@ -56,6 +58,15 @@ public class AudioStore implements AutoCloseable {
     public byte[] get(String key) {
         return cipher.decrypt(
                 s3.getObjectAsBytes(b -> b.bucket(bucket).key(key)).asByteArray());
+    }
+
+    /** Like {@link #get}, but empty when nothing is stored under the key. */
+    public Optional<byte[]> find(String key) {
+        try {
+            return Optional.of(get(key));
+        } catch (NoSuchKeyException e) {
+            return Optional.empty();
+        }
     }
 
     /** The stored bytes exactly as they sit in the bucket (encrypted), for checks. */
