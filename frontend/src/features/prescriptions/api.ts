@@ -1,6 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { ApiRequestError, apiFetch, apiPost, apiPut, errorMessage } from '../../api/client';
-import type { Medicine, Prescription, PrescriptionItemRequest } from './types';
+import type {
+  InstructionLanguage,
+  Medicine,
+  Prescription,
+  PrescriptionItemRequest,
+  SpokenInstructions,
+} from './types';
 
 export const prescriptionKey = (visitId: string) => ['visits', visitId, 'prescription'] as const;
 
@@ -65,6 +71,20 @@ export function signPrescription(visitId: string, revision: number, code: string
 
 export function cancelPrescription(visitId: string, revision: number, code: string) {
   return apiPost<undefined>(`/api/visits/${visitId}/prescription/cancel`, { revision, code });
+}
+
+/** The words for the patient, in the chosen language or else the patient's own. */
+export function useSpokenInstructions(
+  visitId: string,
+  prescriptionId: string,
+  language: InstructionLanguage | null,
+) {
+  const query = language ? `?language=${language}` : '';
+  return useQuery({
+    queryKey: [...prescriptionKey(visitId), prescriptionId, 'instructions', language],
+    queryFn: () =>
+      apiFetch<SpokenInstructions>(`/api/visits/${visitId}/prescription/instructions${query}`),
+  });
 }
 
 export function removeItem(visitId: string, itemId: string, revision: number) {

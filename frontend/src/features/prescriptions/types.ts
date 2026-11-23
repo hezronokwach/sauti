@@ -73,6 +73,16 @@ export interface Prescription {
   alerts: SafetyAlert[];
 }
 
+export type InstructionLanguage = 'SWAHILI' | 'ENGLISH';
+
+/** A signed prescription as words for the patient (backend: SpokenInstructionsResponse). */
+export interface SpokenInstructions {
+  language: InstructionLanguage;
+  version: string;
+  serverAudio: boolean;
+  lines: { itemId: string; text: string }[];
+}
+
 /** Adding or changing a line (backend: PrescriptionItemRequest). */
 export interface PrescriptionItemRequest {
   revision?: number;
