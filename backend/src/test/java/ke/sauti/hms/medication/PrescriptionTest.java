@@ -167,7 +167,7 @@ class PrescriptionTest {
         ResultActions added = add(doctor, visitId, item(null, amoxicillin))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
-                .andExpect(jsonPath("$.rulesVersion").value("medicines-v1"))
+                .andExpect(jsonPath("$.rulesVersion").value("medicines-v2"))
                 .andExpect(jsonPath("$.revision").value(1))
                 .andExpect(jsonPath("$.items[0].medicine.name").value("Amoxicillin"))
                 .andExpect(jsonPath("$.items[0].instructions").value("Baada ya chakula"));

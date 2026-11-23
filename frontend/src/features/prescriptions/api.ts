@@ -1,8 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { ApiRequestError, apiFetch, apiPost, apiPut } from '../../api/client';
+import { ApiRequestError, apiFetch, apiPost, apiPut, errorMessage } from '../../api/client';
 import type { Medicine, Prescription, PrescriptionItemRequest } from './types';
 
 export const prescriptionKey = (visitId: string) => ['visits', visitId, 'prescription'] as const;
+
+/** The backend's own reason for a refusal, so a wrong code is not shown as "no access". */
+export function refusalMessage(error: unknown): string {
+  return error instanceof ApiRequestError ? error.message : errorMessage(error);
+}
 
 /** The visit's prescription, or null when none has been started. */
 async function fetchPrescription(visitId: string): Promise<Prescription | null> {
@@ -41,6 +46,25 @@ export function saveItem(visitId: string, itemId: string | null, body: Prescript
   return itemId
     ? apiPut<Prescription>(`${items}/${itemId}`, body)
     : apiPost<Prescription>(items, body);
+}
+
+export function overrideAlert(visitId: string, alertId: string, reason: string, code: string) {
+  return apiPost<Prescription>(`/api/visits/${visitId}/prescription/alerts/${alertId}/override`, {
+    reason,
+    code,
+  });
+}
+
+export function acknowledgeAlert(visitId: string, alertId: string) {
+  return apiPost<Prescription>(`/api/visits/${visitId}/prescription/alerts/${alertId}/acknowledge`);
+}
+
+export function signPrescription(visitId: string, revision: number, code: string) {
+  return apiPost<Prescription>(`/api/visits/${visitId}/prescription/sign`, { revision, code });
+}
+
+export function cancelPrescription(visitId: string, revision: number, code: string) {
+  return apiPost<undefined>(`/api/visits/${visitId}/prescription/cancel`, { revision, code });
 }
 
 export function removeItem(visitId: string, itemId: string, revision: number) {

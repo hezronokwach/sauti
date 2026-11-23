@@ -133,6 +133,22 @@ class AccessRulesTest {
                     HttpMethod.DELETE,
                     "/api/visits/" + UUID.randomUUID() + "/prescription/items/" + UUID.randomUUID() + "?revision=0",
                     EnumSet.of(StaffRole.DOCTOR)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/prescription/sign",
+                    EnumSet.of(StaffRole.DOCTOR)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/prescription/cancel",
+                    EnumSet.of(StaffRole.DOCTOR)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/prescription/alerts/" + UUID.randomUUID() + "/override",
+                    EnumSet.of(StaffRole.DOCTOR)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/prescription/alerts/" + UUID.randomUUID() + "/acknowledge",
+                    EnumSet.of(StaffRole.DOCTOR)),
             new Rule(HttpMethod.POST, "/api/queue/tickets", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(HttpMethod.POST, "/api/queue/tickets/call-next", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(

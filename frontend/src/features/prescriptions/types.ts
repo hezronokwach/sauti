@@ -49,6 +49,18 @@ export interface PrescriptionItem {
   instructions: string | null;
 }
 
+/** A problem the safety rules found (backend: SafetyAlertResponse). */
+export interface SafetyAlert {
+  id: string;
+  itemId: string | null;
+  rule: string;
+  level: 'BLOCKING' | 'REVIEW';
+  message: string;
+  status: 'OPEN' | 'OVERRIDDEN' | 'ACKNOWLEDGED';
+  overrideReason: string | null;
+  canOverride: boolean;
+}
+
 /** A visit's prescription (backend: PrescriptionResponse). */
 export interface Prescription {
   id: string;
@@ -58,6 +70,7 @@ export interface Prescription {
   revision: number;
   signedAt: string | null;
   items: PrescriptionItem[];
+  alerts: SafetyAlert[];
 }
 
 /** Adding or changing a line (backend: PrescriptionItemRequest). */
