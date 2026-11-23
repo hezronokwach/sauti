@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { InvoicePanel } from '../billing/InvoicePanel';
 import { EmergencyAlerts } from '../queue/EmergencyAlerts';
 import { QueueList } from './QueueList';
 
@@ -37,7 +39,7 @@ export function DoctorPage() {
         <QueueList
           title="With a doctor"
           status="WITH_DOCTOR"
-          action={{ kind: 'move', label: 'Send to payment', to: 'WAITING_PAYMENT' }}
+          action={{ kind: 'finish', label: 'Finish consultation' }}
           emptyText="Nobody with a doctor."
           openable
         />
@@ -46,16 +48,20 @@ export function DoctorPage() {
   );
 }
 
-/** The cashier's screen: patients waiting to pay; marking paid ends the visit. */
+/** The cashier's screen: patients waiting to pay, and the bill of the one selected. */
 export function BillingPage() {
+  const [visitId, setVisitId] = useState<string | null>(null);
   return (
     <main className="wide">
       <h1>Billing</h1>
-      <QueueList
-        title="Waiting for payment"
-        status="WAITING_PAYMENT"
-        action={{ kind: 'move', label: 'Mark paid', to: 'DONE' }}
-      />
+      <div className="columns">
+        <QueueList
+          title="Waiting for payment"
+          status="WAITING_PAYMENT"
+          action={{ kind: 'select', label: 'Open bill', onSelect: setVisitId }}
+        />
+        {visitId ? <InvoicePanel key={visitId} visitId={visitId} /> : null}
+      </div>
     </main>
   );
 }

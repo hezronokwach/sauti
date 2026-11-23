@@ -38,6 +38,15 @@ export function useTakeVisit() {
   });
 }
 
+/** Ends the consultation; the server checks it is complete and builds the bill. */
+export function useFinishConsultation() {
+  const refresh = useRefreshQueues();
+  return useMutation({
+    mutationFn: (visitId: string) => apiPost<unknown>(`/api/visits/${visitId}/finish`),
+    onSettled: refresh,
+  });
+}
+
 export function useChangeVisitStatus() {
   const refresh = useRefreshQueues();
   return useMutation({

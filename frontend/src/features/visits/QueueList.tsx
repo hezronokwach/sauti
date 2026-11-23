@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { ApiRequestError, errorMessage } from '../../api/client';
-import { useChangeVisitStatus, useQueue, useTakeVisit } from './api';
+import { useChangeVisitStatus, useFinishConsultation, useQueue, useTakeVisit } from './api';
 import { minutesWaiting } from './time';
 import type { QueueEntryResponse, VisitStatus } from './types';
 
 /** What the button on each row does: take the patient, or move the visit on. */
 export type QueueAction =
-  { kind: 'take'; label: string } | { kind: 'move'; label: string; to: VisitStatus };
+  | { kind: 'take'; label: string }
+  | { kind: 'move'; label: string; to: VisitStatus }
+  | { kind: 'finish'; label: string }
+  | { kind: 'select'; label: string; onSelect: (visitId: string) => void };
 
 interface QueueListProps {
   title: string;
@@ -35,6 +38,7 @@ export function QueueList({
   const queue = useQueue(status);
   const take = useTakeVisit();
   const move = useChangeVisitStatus();
+  const finish = useFinishConsultation();
   const [message, setMessage] = useState<string | null>(null);
 
   const act = (entry: QueueEntryResponse) => {
@@ -48,9 +52,13 @@ export function QueueList({
       take.mutate(entry.visitId, { onError });
     } else if (action?.kind === 'move') {
       move.mutate({ visitId: entry.visitId, to: action.to }, { onError });
+    } else if (action?.kind === 'finish') {
+      finish.mutate(entry.visitId, { onError });
+    } else if (action?.kind === 'select') {
+      action.onSelect(entry.visitId);
     }
   };
-  const busy = take.isPending || move.isPending;
+  const busy = take.isPending || move.isPending || finish.isPending;
   const headingId = `queue-${status}`;
 
   return (
