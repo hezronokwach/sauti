@@ -61,7 +61,7 @@ class RateLimitTest {
     @Test
     void tooManyLoginsForOneAccountAreRefusedInTheErrorShape() throws Exception {
         String email = "limit-" + UUID.randomUUID() + "@sauti.test";
-        for (int i = 0; i < Limit.LOGIN_ACCOUNT.capacity(); i++) {
+        for (long i = 0; i < Limit.LOGIN_ACCOUNT.capacity(); i++) {
             login(email, "10.1.0." + (i + 1)).andExpect(status().isUnauthorized());
         }
 
@@ -75,7 +75,7 @@ class RateLimitTest {
 
     @Test
     void aPublicEndpointIsLimitedPerAddress() throws Exception {
-        for (int i = 0; i < Limit.PRE_REGISTRATION_ADDRESS.capacity(); i++) {
+        for (long i = 0; i < Limit.PRE_REGISTRATION_ADDRESS.capacity(); i++) {
             preRegister("10.2.0.1").andExpect(status().isBadRequest());
         }
 
@@ -88,10 +88,10 @@ class RateLimitTest {
     @Test
     void onlyWrongSigningCodesUseUpTheirLimit() {
         String account = UUID.randomUUID().toString();
-        for (int i = 0; i < Limit.WRONG_SIGNING_CODE.capacity() * 2; i++) {
+        for (long i = 0; i < Limit.WRONG_SIGNING_CODE.capacity() * 2; i++) {
             limits.requireAvailable(Limit.WRONG_SIGNING_CODE, account);
         }
-        for (int i = 0; i < Limit.WRONG_SIGNING_CODE.capacity(); i++) {
+        for (long i = 0; i < Limit.WRONG_SIGNING_CODE.capacity(); i++) {
             limits.requireAvailable(Limit.WRONG_SIGNING_CODE, account);
             limits.recordFailure(Limit.WRONG_SIGNING_CODE, account);
         }
