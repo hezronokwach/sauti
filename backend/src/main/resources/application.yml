@@ -19,6 +19,8 @@ spring:
       ddl-auto: validate
 
 server:
+  # Set to native only behind a trusted proxy, or clients could fake their address.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
   servlet:
     session:
       cookie:
