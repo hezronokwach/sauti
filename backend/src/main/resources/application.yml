@@ -103,6 +103,11 @@ sauti:
       callback-base-url: ${MPESA_CALLBACK_BASE_URL:}
       connect-timeout: 5s
       read-timeout: 20s
+  cleanup:
+    # Confirm these periods against the legal schedule before real use.
+    audio-retention: ${CLEANUP_AUDIO_RETENTION:30d}
+    orphan-grace: 1d
+    cron: "0 30 2 * * *"
   billing:
     # A demonstration amount in Kenya shillings until the facility sets its own.
     consultation-fee-kes: ${CONSULTATION_FEE_KES:500}

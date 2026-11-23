@@ -1,7 +1,10 @@
 package ke.sauti.hms.capture;
 
 import java.net.URI;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import ke.sauti.hms.common.crypto.ColumnCipher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +18,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
  * Audio pieces in S3-compatible storage, always encrypted with the app key
@@ -72,6 +76,19 @@ public class AudioStore implements AutoCloseable {
     /** The stored bytes exactly as they sit in the bucket (encrypted), for checks. */
     byte[] getRaw(String key) {
         return s3.getObjectAsBytes(b -> b.bucket(bucket).key(key)).asByteArray();
+    }
+
+    /** Calls back with each page of keys under the prefix last changed before the given time. */
+    public void forEachPageOlderThan(String prefix, Instant before, Consumer<List<String>> page) {
+        s3.listObjectsV2Paginator(b -> b.bucket(bucket).prefix(prefix)).forEach(response -> {
+            List<String> keys = response.contents().stream()
+                    .filter(object -> object.lastModified().isBefore(before))
+                    .map(S3Object::key)
+                    .toList();
+            if (!keys.isEmpty()) {
+                page.accept(keys);
+            }
+        });
     }
 
     public void delete(String key) {

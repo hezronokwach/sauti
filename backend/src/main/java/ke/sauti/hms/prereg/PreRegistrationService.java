@@ -71,6 +71,15 @@ public class PreRegistrationService {
         this.clock = clock;
     }
 
+    /** A safety net behind the end-of-day job; the audit row holds only the count. */
+    public int deleteFromEarlierDays() {
+        int deleted = Math.toIntExact(repository.deleteByTicketDateBefore(facilityTime.today()));
+        if (deleted > 0) {
+            audit.record(AuditAction.PRE_REGISTRATIONS_EXPIRED, Map.of("entries", deleted));
+        }
+        return deleted;
+    }
+
     /** Saves the entry and returns the P ticket's code. */
     public String submit(PreRegisterRequest request, String remoteAddress) {
         LocalDate today = facilityTime.today();
