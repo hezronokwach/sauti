@@ -40,6 +40,7 @@
         <commons-codec.version>1.23.0</commons-codec.version>
         <jackson-bom.version>3.1.8</jackson-bom.version>
         <json-smart.version>2.6.1</json-smart.version>
+        <tomcat.version>11.0.29</tomcat.version>
     </properties>
     <dependencyManagement>
         <dependencies>
