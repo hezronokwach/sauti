@@ -18,3 +18,9 @@ export interface Invoice {
 }
 
 export type SettleMethod = 'cash' | 'insurance';
+
+/** Where the bill's payment stands (backend: PaymentStatusResponse). */
+export interface PaymentProgress {
+  invoiceStatus: Invoice['status'];
+  paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'UNCONFIRMED' | null;
+}

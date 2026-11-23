@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { errorMessage } from '../../api/client';
-import { useInvoice, useSettleInvoice } from './api';
+import { useInvoice, usePaymentProgress, useSettleInvoice } from './api';
+import { MpesaPayment } from './MpesaPayment';
 import type { SettleMethod } from './types';
 
 const money = (amount: number) =>
@@ -20,6 +21,7 @@ const CONFIRM: Record<SettleMethod, string> = {
 export function InvoicePanel({ visitId }: { visitId: string }) {
   const invoice = useInvoice(visitId);
   const settle = useSettleInvoice(visitId);
+  const progress = usePaymentProgress(visitId);
   const [choice, setChoice] = useState<{ method: SettleMethod; idempotencyKey: string } | null>(
     null,
   );
@@ -27,6 +29,9 @@ export function InvoicePanel({ visitId }: { visitId: string }) {
   if (invoice.isPending) return <p role="status">Loading the bill...</p>;
   if (invoice.error) return <p role="alert">{errorMessage(invoice.error)}</p>;
   const current = invoice.data;
+  // The customer may already have paid, so no other payment is offered until this is settled.
+  const mpesaOpen =
+    progress.data?.paymentStatus === 'PENDING' || progress.data?.paymentStatus === 'UNCONFIRMED';
 
   const choose = (method: SettleMethod) => {
     settle.reset();
@@ -62,6 +67,9 @@ export function InvoicePanel({ visitId }: { visitId: string }) {
       {current.status === 'UNPAID' ? null : <p role="status">{SETTLED[current.status]}</p>}
       {settle.error ? <p role="alert">{errorMessage(settle.error)}</p> : null}
       {current.status === 'UNPAID' ? (
+        <MpesaPayment visitId={visitId} progress={progress.data} />
+      ) : null}
+      {current.status === 'UNPAID' && !mpesaOpen ? (
         <div className="actions">
           {choice ? (
             <>
