@@ -1,17 +1,20 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { errorMessage } from '../../api/client';
+import { PrescriptionPanel } from '../prescriptions/PrescriptionPanel';
 import { noteKey, useNote } from './api';
 import { NoteEditor } from './NoteEditor';
 import { PatientHistory } from './PatientHistory';
 import { SignedNote } from './SignedNote';
 import type { NoteResponse } from './types';
 
-type Tab = 'note' | 'history';
+type Tab = 'note' | 'prescription' | 'history';
 
 /** The doctor's side of the visit page: this visit's note, or the patient's history. */
 export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patientId: string }) {
   const [tab, setTab] = useState<Tab>('note');
+  // Loaded on first opening (each read is access-logged), then kept so a half-typed line survives.
+  const [prescriptionOpened, setPrescriptionOpened] = useState(false);
   const note = useNote(visitId);
   const queryClient = useQueryClient();
   const update = (next: NoteResponse) => {
@@ -31,6 +34,18 @@ export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patie
           }}
         >
           This visit
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'prescription'}
+          className={tab === 'prescription' ? undefined : 'secondary'}
+          onClick={() => {
+            setPrescriptionOpened(true);
+            setTab('prescription');
+          }}
+        >
+          Prescription
         </button>
         <button
           type="button"
@@ -56,6 +71,11 @@ export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patie
           )
         ) : null}
       </div>
+      {prescriptionOpened ? (
+        <div role="tabpanel" hidden={tab !== 'prescription'}>
+          <PrescriptionPanel visitId={visitId} />
+        </div>
+      ) : null}
       {tab === 'history' ? (
         <div role="tabpanel">
           <PatientHistory patientId={patientId} visitId={visitId} />
