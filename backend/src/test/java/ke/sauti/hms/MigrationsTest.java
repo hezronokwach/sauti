@@ -29,7 +29,7 @@ class MigrationsTest {
         assertThat(versions)
                 .containsExactly(
                         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17",
-                        "18");
+                        "18", "19", "20");
     }
 
     @Test
@@ -64,6 +64,11 @@ class MigrationsTest {
                         "queue_ticket_counter",
                         "pre_registration",
                         "patient_eligibility",
-                        "field_draft");
+                        "field_draft",
+                        "allergy_group",
+                        "medicine",
+                        "prescription",
+                        "prescription_item",
+                        "safety_alert");
     }
 }

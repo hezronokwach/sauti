@@ -1,0 +1,32 @@
+code,label
+PENICILLIN,Penicillins
+CEPHALOSPORIN,Cephalosporins
+MACROLIDE,Macrolides
+SULFONAMIDE,Sulfonamides
+FLUOROQUINOLONE,Fluoroquinolones
+TETRACYCLINE,Tetracyclines
+NITROIMIDAZOLE,Nitroimidazoles
+AMINOGLYCOSIDE,Aminoglycosides
+NSAID,Non-steroidal anti-inflammatory drugs
+ANALGESIC,Simple analgesics
+OPIOID,Opioids
+ANTIMALARIAL,Antimalarials
+ANTHELMINTIC,Anthelmintics
+ANTIFUNGAL,Antifungals
+ANTIHISTAMINE,Antihistamines
+BRONCHODILATOR,Bronchodilators
+CORTICOSTEROID,Corticosteroids
+ACE_INHIBITOR,ACE inhibitors
+CALCIUM_BLOCKER,Calcium channel blockers
+BETA_BLOCKER,Beta blockers
+DIURETIC,Diuretics
+BIGUANIDE,Biguanides
+SULFONYLUREA,Sulfonylureas
+INSULIN,Insulins
+PPI,Proton pump inhibitors
+H2_BLOCKER,H2 blockers
+ANTIEMETIC,Antiemetics
+REHYDRATION,Rehydration salts
+SUPPLEMENT,Vitamins and minerals
+STATIN,Statins
+ANTIPLATELET,Antiplatelets

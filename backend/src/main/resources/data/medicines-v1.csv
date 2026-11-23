@@ -1,0 +1,52 @@
+code,name,form,strength,group,routes,price_kes
+AMOX-500-CAP,Amoxicillin,Capsule,500 mg,PENICILLIN,ORAL,15.00
+AMOX-125-SUS,Amoxicillin,Suspension,125 mg/5 mL,PENICILLIN,ORAL,120.00
+COAMOX-625-TAB,Amoxicillin with clavulanic acid,Tablet,625 mg,PENICILLIN,ORAL,60.00
+FLUX-500-CAP,Flucloxacillin,Capsule,500 mg,PENICILLIN,ORAL,25.00
+BENPEN-1G-INJ,Benzylpenicillin,Injection,1 MU,PENICILLIN,IV|IM,80.00
+CEFUR-500-TAB,Cefuroxime,Tablet,500 mg,CEPHALOSPORIN,ORAL,70.00
+CEFTR-1G-INJ,Ceftriaxone,Injection,1 g,CEPHALOSPORIN,IV|IM,150.00
+AZITH-500-TAB,Azithromycin,Tablet,500 mg,MACROLIDE,ORAL,60.00
+ERYTH-500-TAB,Erythromycin,Tablet,500 mg,MACROLIDE,ORAL,20.00
+COTRI-960-TAB,Co-trimoxazole,Tablet,960 mg,SULFONAMIDE,ORAL,8.00
+CIPRO-500-TAB,Ciprofloxacin,Tablet,500 mg,FLUOROQUINOLONE,ORAL,20.00
+DOXY-100-CAP,Doxycycline,Capsule,100 mg,TETRACYCLINE,ORAL,10.00
+METRO-400-TAB,Metronidazole,Tablet,400 mg,NITROIMIDAZOLE,ORAL,5.00
+METRO-500-INF,Metronidazole,Infusion,500 mg/100 mL,NITROIMIDAZOLE,IV,120.00
+GENTA-80-INJ,Gentamicin,Injection,80 mg/2 mL,AMINOGLYCOSIDE,IV|IM,40.00
+IBU-400-TAB,Ibuprofen,Tablet,400 mg,NSAID,ORAL,5.00
+DICLO-50-TAB,Diclofenac,Tablet,50 mg,NSAID,ORAL,5.00
+DICLO-75-INJ,Diclofenac,Injection,75 mg/3 mL,NSAID,IM,40.00
+PARA-500-TAB,Paracetamol,Tablet,500 mg,ANALGESIC,ORAL,2.00
+PARA-120-SYR,Paracetamol,Syrup,120 mg/5 mL,ANALGESIC,ORAL,80.00
+TRAM-50-CAP,Tramadol,Capsule,50 mg,OPIOID,ORAL,15.00
+AL-20-120-TAB,Artemether with lumefantrine,Tablet,20/120 mg,ANTIMALARIAL,ORAL,20.00
+ARTES-60-INJ,Artesunate,Injection,60 mg,ANTIMALARIAL,IV|IM,350.00
+ALBEN-400-TAB,Albendazole,Tablet,400 mg,ANTHELMINTIC,ORAL,20.00
+MEBEN-100-TAB,Mebendazole,Tablet,100 mg,ANTHELMINTIC,ORAL,10.00
+FLUCO-150-CAP,Fluconazole,Capsule,150 mg,ANTIFUNGAL,ORAL,30.00
+CLOTR-1-CRM,Clotrimazole,Cream,1%,ANTIFUNGAL,TOPICAL,100.00
+CETIR-10-TAB,Cetirizine,Tablet,10 mg,ANTIHISTAMINE,ORAL,5.00
+CHLOR-4-TAB,Chlorphenamine,Tablet,4 mg,ANTIHISTAMINE,ORAL,2.00
+SALB-100-INH,Salbutamol,Inhaler,100 mcg/puff,BRONCHODILATOR,INHALED,450.00
+SALB-4-TAB,Salbutamol,Tablet,4 mg,BRONCHODILATOR,ORAL,3.00
+PRED-5-TAB,Prednisolone,Tablet,5 mg,CORTICOSTEROID,ORAL,3.00
+HYDRO-100-INJ,Hydrocortisone,Injection,100 mg,CORTICOSTEROID,IV|IM,120.00
+ENAL-5-TAB,Enalapril,Tablet,5 mg,ACE_INHIBITOR,ORAL,5.00
+LISIN-10-TAB,Lisinopril,Tablet,10 mg,ACE_INHIBITOR,ORAL,10.00
+AMLO-5-TAB,Amlodipine,Tablet,5 mg,CALCIUM_BLOCKER,ORAL,5.00
+NIFE-20-TAB,Nifedipine,Tablet,20 mg,CALCIUM_BLOCKER,ORAL,5.00
+ATEN-50-TAB,Atenolol,Tablet,50 mg,BETA_BLOCKER,ORAL,5.00
+HCTZ-25-TAB,Hydrochlorothiazide,Tablet,25 mg,DIURETIC,ORAL,3.00
+FURO-40-TAB,Furosemide,Tablet,40 mg,DIURETIC,ORAL,3.00
+METF-500-TAB,Metformin,Tablet,500 mg,BIGUANIDE,ORAL,4.00
+GLIB-5-TAB,Glibenclamide,Tablet,5 mg,SULFONYLUREA,ORAL,3.00
+INSUL-70-30-INJ,Insulin mixed 70/30,Injection,100 IU/mL,INSULIN,SC,900.00
+OMEP-20-CAP,Omeprazole,Capsule,20 mg,PPI,ORAL,8.00
+FAMO-20-TAB,Famotidine,Tablet,20 mg,H2_BLOCKER,ORAL,5.00
+METOC-10-TAB,Metoclopramide,Tablet,10 mg,ANTIEMETIC,ORAL,3.00
+ORS-SAC,Oral rehydration salts,Sachet,20.5 g,REHYDRATION,ORAL,20.00
+ZINC-20-TAB,Zinc sulfate,Tablet,20 mg,SUPPLEMENT,ORAL,5.00
+FEFOL-TAB,Ferrous sulfate with folic acid,Tablet,200 mg/400 mcg,SUPPLEMENT,ORAL,3.00
+ATOR-20-TAB,Atorvastatin,Tablet,20 mg,STATIN,ORAL,15.00
+ASPIR-75-TAB,Aspirin,Tablet,75 mg,ANTIPLATELET,ORAL,2.00
