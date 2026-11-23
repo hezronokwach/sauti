@@ -150,12 +150,15 @@ class VisitApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("WITH_DOCTOR"))
                 .andExpect(jsonPath("$.assignedDoctorId").value(doctor.getId().toString()));
-        move(doctor, id, "WAITING_PAYMENT").andExpect(status().isOk());
-        move(cashier, id, "DONE")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("DONE"));
-
         UUID visitId = UUID.fromString(id);
+        // Payment moves go through billing, so the screen endpoint cannot make them.
+        move(doctor, id, "WAITING_PAYMENT").andExpect(status().isUnprocessableContent());
+        visits.changeStatus(
+                visitId, VisitStatus.WAITING_PAYMENT, null, new VisitService.Actor(doctor.getId(), doctor.getRole()));
+        move(cashier, id, "DONE").andExpect(status().isUnprocessableContent());
+        visits.changeStatus(
+                visitId, VisitStatus.DONE, null, new VisitService.Actor(cashier.getId(), cashier.getRole()));
+
         assertThat(visits.history(visitId))
                 .extracting(VisitStatusChange::getToStatus)
                 .containsExactly(
@@ -227,7 +230,7 @@ class VisitApiTest {
     void aMoveTheWorkflowDoesNotHaveIs409() throws Exception {
         String id = open(newPatient());
 
-        move(reception, id, "DONE").andExpect(status().isConflict());
+        move(reception, id, "DONE").andExpect(status().isUnprocessableContent());
         move(reception, id, "WITH_DOCTOR").andExpect(status().isConflict());
     }
 

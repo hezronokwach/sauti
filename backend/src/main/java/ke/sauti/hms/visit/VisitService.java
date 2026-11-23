@@ -132,6 +132,22 @@ public class VisitService {
         return apply(lock(visitId), to, actor, reason);
     }
 
+    /**
+     * A status change asked for directly by a screen. Going to payment and being paid are
+     * refused here: they happen only through billing, so no visit can skip its invoice.
+     */
+    public Visit changeStatusByRequest(UUID visitId, VisitStatus to, String reason, Actor actor) {
+        if (to == VisitStatus.WAITING_PAYMENT || to == VisitStatus.DONE) {
+            throw new BusinessRuleException("Finish the consultation or record the payment instead");
+        }
+        return changeStatus(visitId, to, reason, actor);
+    }
+
+    /** Locks the visit for the rest of the transaction, so billing steps cannot interleave. */
+    public Visit lockForChange(UUID visitId) {
+        return lock(visitId);
+    }
+
     /** What brought the patient in, for someone looking after the visit; access-logged. */
     public String reasonForVisit(UUID visitId, Actor actor) {
         accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.REASON_FOR_VISIT, true);

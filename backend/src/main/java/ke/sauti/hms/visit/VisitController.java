@@ -119,6 +119,6 @@ public class VisitController {
             @PathVariable UUID id,
             @Valid @RequestBody ChangeVisitStatusRequest request,
             @AuthenticationPrincipal AuditActor staff) {
-        return VisitResponse.of(service.changeStatus(id, request.to(), request.reason(), actor(staff)));
+        return VisitResponse.of(service.changeStatusByRequest(id, request.to(), request.reason(), actor(staff)));
     }
 }
