@@ -1,11 +1,11 @@
 import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { jsonResponse, mockApi, renderWithQuery } from '../../test/render';
-import { WaitingTimesPage } from './WaitingTimesPage';
+import { WaitingTimes } from './WaitingTimes';
 
 const stage = (median: number | null, p90: number | null) => ({ median, p90 });
 
-describe('WaitingTimesPage', () => {
+describe('WaitingTimes', () => {
   it('shows each lane and hour with the median and 90th percentile of every stage', async () => {
     mockApi({
       'GET /api/admin/reports/waiting-times': () =>
@@ -32,7 +32,7 @@ describe('WaitingTimesPage', () => {
           },
         ]),
     });
-    renderWithQuery(<WaitingTimesPage />);
+    renderWithQuery(<WaitingTimes />);
 
     expect(await screen.findByText('6.0 / 7.6')).toBeInTheDocument();
     expect(screen.getByText('56.0 / 64.8')).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('WaitingTimesPage', () => {
 
   it('says when there are no visits', async () => {
     mockApi({ 'GET /api/admin/reports/waiting-times': () => jsonResponse(200, []) });
-    renderWithQuery(<WaitingTimesPage />);
+    renderWithQuery(<WaitingTimes />);
 
     expect(await screen.findByText('No visits in these dates.')).toBeInTheDocument();
   });

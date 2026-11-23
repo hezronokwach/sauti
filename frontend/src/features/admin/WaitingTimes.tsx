@@ -53,7 +53,7 @@ const show = (minutes: number | null) => (minutes === null ? '-' : minutes.toFix
  * The administrator's waiting-time report: for each lane and hour of arrival, the median and
  * 90th-percentile minutes of every stage, so improvements can be shown and not just claimed.
  */
-export function WaitingTimesPage() {
+export function WaitingTimes() {
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(today);
   const report = useQuery({
@@ -65,9 +65,8 @@ export function WaitingTimesPage() {
   });
 
   return (
-    <main className="wide">
-      <h1>Administration</h1>
-      <h2>Waiting times</h2>
+    <section aria-labelledby="waiting-heading">
+      <h2 id="waiting-heading">Waiting times</h2>
       <div className="actions">
         <label htmlFor="report-from">From</label>
         <input
@@ -121,6 +120,6 @@ export function WaitingTimesPage() {
           </tbody>
         </table>
       ) : null}
-    </main>
+    </section>
   );
 }
