@@ -1,4 +1,5 @@
 import type { RouteObject } from 'react-router';
+import { WaitingTimesPage } from '../features/admin/WaitingTimesPage';
 import { ChangePasswordPage } from '../features/auth/ChangePasswordPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RequireLogin } from '../features/auth/RequireLogin';
@@ -11,7 +12,6 @@ import { ReceptionPage } from '../features/reception/ReceptionPage';
 import { BillingPage, DoctorPage, TriagePage } from '../features/visits/QueuePages';
 import { VisitPage } from '../features/visits/VisitPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { RoleHomePage } from '../pages/RoleHomePage';
 import { RootRedirect } from '../pages/RootRedirect';
 
 /** A page for the listed roles only. Every logged-in page is declared through this. */
@@ -50,7 +50,7 @@ export const routes: RouteObject[] = [
           page(ROLE_HOME.NURSE, ['NURSE'], <TriagePage />),
           page(ROLE_HOME.DOCTOR, ['DOCTOR'], <DoctorPage />),
           page(ROLE_HOME.CASHIER, ['CASHIER'], <BillingPage />),
-          page(ROLE_HOME.ADMIN, ['ADMIN'], <RoleHomePage title="Administration" />),
+          page(ROLE_HOME.ADMIN, ['ADMIN'], <WaitingTimesPage />),
           page('/visits/:visitId', ['RECEPTIONIST', 'NURSE', 'DOCTOR'], <VisitPage />),
         ],
       },
