@@ -11,6 +11,7 @@ import {
 import { CodeConfirm } from './CodeConfirm';
 import { PrescriptionItemForm } from './PrescriptionItemForm';
 import { SafetyAlerts } from './SafetyAlerts';
+import { SpokenInstructionsPanel } from './SpokenInstructionsPanel';
 import { FREQUENCIES, type Prescription, type PrescriptionItem } from './types';
 
 /** A line as a doctor reads it; a missing detail is shown, not hidden. */
@@ -154,6 +155,9 @@ export function PrescriptionPanel({ visitId }: { visitId: string }) {
           }}
           onFailed={reload}
         />
+      ) : null}
+      {current?.status === 'SIGNED' ? (
+        <SpokenInstructionsPanel visitId={visitId} prescriptionId={current.id} />
       ) : null}
       {current?.status === 'SIGNED' ? (
         <CodeConfirm

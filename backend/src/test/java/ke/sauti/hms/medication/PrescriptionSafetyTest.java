@@ -382,6 +382,29 @@ class PrescriptionSafetyTest {
     }
 
     @Test
+    void onlyASignedPrescriptionIsSpokenInThePatientsLanguage() throws Exception {
+        noKnownAllergies();
+        JsonNode prescription = add(line("PARA-500-TAB", 15));
+        String instructions = "/api/visits/" + visitId + "/prescription/instructions";
+        mvc.perform(get(instructions).with(as(doctor))).andExpect(status().isUnprocessableContent());
+
+        sign(prescription, GOOD_CODE).andExpect(status().isOk());
+
+        mvc.perform(get(instructions).with(as(doctor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.language").value("SWAHILI"))
+                .andExpect(jsonPath("$.serverAudio").value(false))
+                .andExpect(jsonPath("$.lines[0].text")
+                        .value("Meza kidonge moja ya Paracetamol, mara tatu kwa siku, kwa siku tano."));
+        mvc.perform(get(instructions).param("language", "ENGLISH").with(as(doctor)))
+                .andExpect(jsonPath("$.lines[0].text")
+                        .value("Take one tablet of Paracetamol, three times a day, for five days."));
+        String item = prescription.get("items").get(0).get("id").asString();
+        mvc.perform(get(instructions + "/" + item + "/audio").with(as(doctor)))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
     void aCashierSeesThePrescriptionButNotAlertsQuotingAllergies() throws Exception {
         allergy("Penicillin", null);
         add(line("AMOX-500-CAP", 15));

@@ -11,9 +11,15 @@ import ke.sauti.hms.medication.dto.OverrideAlertRequest;
 import ke.sauti.hms.medication.dto.PrescriptionItemRequest;
 import ke.sauti.hms.medication.dto.PrescriptionResponse;
 import ke.sauti.hms.medication.dto.SignPrescriptionRequest;
+import ke.sauti.hms.medication.dto.SpokenInstructionsResponse;
+import ke.sauti.hms.patient.PreferredLanguage;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.visit.VisitService;
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,9 +41,11 @@ public class PrescriptionController {
     private static final String ALERT = PRESCRIPTION + "/alerts/{alertId}";
 
     private final PrescriptionService service;
+    private final SpokenInstructions spoken;
 
-    public PrescriptionController(PrescriptionService service) {
+    public PrescriptionController(PrescriptionService service, SpokenInstructions spoken) {
         this.service = service;
+        this.spoken = spoken;
     }
 
     private static VisitService.Actor actor(AuditActor staff) {
@@ -109,6 +117,30 @@ public class PrescriptionController {
             @Valid @RequestBody SignPrescriptionRequest request,
             @AuthenticationPrincipal AuditActor staff) {
         return service.sign(visitId, request.revision(), request.code(), actor(staff));
+    }
+
+    /** The signed prescription as words for the patient. */
+    @GetMapping(PRESCRIPTION + "/instructions")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public SpokenInstructionsResponse instructions(
+            @PathVariable UUID visitId,
+            @RequestParam(required = false) @Nullable PreferredLanguage language,
+            @AuthenticationPrincipal AuditActor staff) {
+        return spoken.text(visitId, language, actor(staff));
+    }
+
+    /** One line's audio. It holds a patient's medicine, so the browser must not cache it. */
+    @GetMapping(PRESCRIPTION + "/instructions/{itemId}/audio")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<byte[]> instructionAudio(
+            @PathVariable UUID visitId,
+            @PathVariable UUID itemId,
+            @RequestParam(required = false) @Nullable PreferredLanguage language,
+            @AuthenticationPrincipal AuditActor staff) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("audio/mpeg"))
+                .cacheControl(CacheControl.noStore())
+                .body(spoken.audio(visitId, itemId, language, actor(staff)));
     }
 
     @PostMapping(PRESCRIPTION + "/cancel")
