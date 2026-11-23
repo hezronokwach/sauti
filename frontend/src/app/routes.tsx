@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router';
-import { WaitingTimesPage } from '../features/admin/WaitingTimesPage';
+import { AdminPage } from '../features/admin/AdminPage';
 import { ChangePasswordPage } from '../features/auth/ChangePasswordPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RequireLogin } from '../features/auth/RequireLogin';
@@ -50,7 +50,7 @@ export const routes: RouteObject[] = [
           page(ROLE_HOME.NURSE, ['NURSE'], <TriagePage />),
           page(ROLE_HOME.DOCTOR, ['DOCTOR'], <DoctorPage />),
           page(ROLE_HOME.CASHIER, ['CASHIER'], <BillingPage />),
-          page(ROLE_HOME.ADMIN, ['ADMIN'], <WaitingTimesPage />),
+          page(ROLE_HOME.ADMIN, ['ADMIN'], <AdminPage />),
           page('/visits/:visitId', ['RECEPTIONIST', 'NURSE', 'DOCTOR'], <VisitPage />),
         ],
       },
