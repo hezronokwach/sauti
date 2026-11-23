@@ -87,6 +87,20 @@ sauti:
       api-key: ${AZURE_SPEECH_KEY:}
       connect-timeout: 5s
       read-timeout: 15s
+  mpesa:
+    # fake (development and tests) or daraja (needs the keys below).
+    provider: ${MPESA_PROVIDER:fake}
+    # At least 32 random characters; it is part of the public callback address.
+    callback-secret: ${MPESA_CALLBACK_SECRET:}
+    daraja:
+      base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
+      consumer-key: ${MPESA_CONSUMER_KEY:}
+      consumer-secret: ${MPESA_CONSUMER_SECRET:}
+      shortcode: ${MPESA_SHORTCODE:}
+      passkey: ${MPESA_PASSKEY:}
+      callback-base-url: ${MPESA_CALLBACK_BASE_URL:}
+      connect-timeout: 5s
+      read-timeout: 20s
   billing:
     # A demonstration amount in Kenya shillings until the facility sets its own.
     consultation-fee-kes: ${CONSULTATION_FEE_KES:500}

@@ -162,6 +162,11 @@ public class BillingService {
         if (invoice.getStatus() != InvoiceStatus.UNPAID || visit.getStatus() != VisitStatus.WAITING_PAYMENT) {
             throw new ConflictException("This invoice has already been settled");
         }
+        // An M-Pesa prompt may already have taken the money, so it must be settled first.
+        if (!payments.findByInvoiceIdAndStatusNot(invoice.getId(), PaymentStatus.FAILED)
+                .isEmpty()) {
+            throw new ConflictException("An M-Pesa payment for this invoice is still open");
+        }
         Payment payment = payments.saveAndFlush(new Payment(
                 invoice.getId(), method, invoice.getTotalKes(), paymentStatus, idempotencyKey, actor.staffId()));
         invoice.settle(invoiceStatus);

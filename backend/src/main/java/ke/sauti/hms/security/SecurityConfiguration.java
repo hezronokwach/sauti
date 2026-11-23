@@ -94,6 +94,10 @@ public class SecurityConfiguration {
                                 // The pre-registration page: saves only, answers with a ticket code.
                                 .requestMatchers(HttpMethod.POST, "/api/public/pre-registrations")
                                 .permitAll()
+                                // Safaricom reports here; the path holds a long secret and nothing is
+                                // paid until the status query confirms it.
+                                .requestMatchers(HttpMethod.POST, "/api/public/mpesa/callback/*")
+                                .permitAll()
                                 .requestMatchers("/api/pre-registrations/**")
                                 .hasRole("RECEPTIONIST")
                                 // Checked before the request body is read, so a non-admin learns
@@ -161,7 +165,9 @@ public class SecurityConfiguration {
                                 .anyRequest()
                                 .authenticated())
                 .securityContext(context -> context.securityContextRepository(contextRepository))
-                .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokenRepository))
+                .csrf(csrf -> csrf.spa()
+                        .csrfTokenRepository(csrfTokenRepository)
+                        .ignoringRequestMatchers("/api/public/mpesa/callback/*"))
                 .addFilterAfter(new SessionAgeLimitFilter(clock), SecurityContextHolderFilter.class)
                 .exceptionHandling(
                         handling -> handling.authenticationEntryPoint(errors).accessDeniedHandler(errors))

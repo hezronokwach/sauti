@@ -167,6 +167,18 @@ class AccessRulesTest {
                     HttpMethod.POST,
                     "/api/visits/" + UUID.randomUUID() + "/invoice/insurance",
                     EnumSet.of(StaffRole.CASHIER)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/invoice/mpesa",
+                    EnumSet.of(StaffRole.CASHIER)),
+            new Rule(
+                    HttpMethod.POST,
+                    "/api/visits/" + UUID.randomUUID() + "/invoice/mpesa/resolve",
+                    EnumSet.of(StaffRole.CASHIER)),
+            new Rule(
+                    HttpMethod.GET,
+                    "/api/visits/" + UUID.randomUUID() + "/invoice/payment",
+                    EnumSet.of(StaffRole.CASHIER)),
             new Rule(HttpMethod.POST, "/api/queue/tickets", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(HttpMethod.POST, "/api/queue/tickets/call-next", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(
