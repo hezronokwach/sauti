@@ -60,6 +60,14 @@ public class CaptureService {
         this.clock = clock;
     }
 
+    /** Whether any recording is still running for this visit. */
+    public boolean isRecording(UUID visitId) {
+        return RECORDERS.keySet().stream()
+                .anyMatch(
+                        purpose -> !sessions.findByVisitIdAndPurposeAndStatus(visitId, purpose, CaptureStatus.RECORDING)
+                                .isEmpty());
+    }
+
     public CaptureSession start(UUID visitId, ConsentPurpose purpose, String languageHint, VisitService.Actor actor) {
         if (!RECORDERS.get(purpose).contains(actor.role())) {
             throw new ForbiddenException("Your role does not make this kind of recording");

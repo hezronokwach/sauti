@@ -87,6 +87,9 @@ sauti:
       api-key: ${AZURE_SPEECH_KEY:}
       connect-timeout: 5s
       read-timeout: 15s
+  billing:
+    # A demonstration amount in Kenya shillings until the facility sets its own.
+    consultation-fee-kes: ${CONSULTATION_FEE_KES:500}
   crypto:
     # 32 random bytes each, Base64 (openssl rand -base64 32). Never the same key twice.
     encryption-key: ${APP_ENCRYPTION_KEY:}

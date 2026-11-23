@@ -247,6 +247,44 @@ public class PrescriptionService {
                 Map.of("rulesVersion", prescription.getRulesVersion()));
     }
 
+    /**
+     * The lines to bill when a consultation finishes. Refuses an unsigned prescription, and a
+     * line with no quantity, because guessing one would charge the patient the wrong amount.
+     */
+    public List<BillableMedicine> billableLines(UUID visitId) {
+        Prescription prescription = prescriptions.lockActiveByVisitId(visitId).orElse(null);
+        if (prescription == null) {
+            return List.of();
+        }
+        List<PrescriptionItem> lines = items.findByPrescriptionIdOrderByCreatedAtAsc(prescription.getId());
+        if (lines.isEmpty()) {
+            return List.of();
+        }
+        if (prescription.isDraft()) {
+            throw new BusinessRuleException("Sign the prescription before finishing the consultation");
+        }
+        Map<UUID, Medicine> byId =
+                medicines
+                        .findAllById(lines.stream()
+                                .map(PrescriptionItem::getMedicineId)
+                                .toList())
+                        .stream()
+                        .collect(Collectors.toMap(Medicine::getId, Function.identity()));
+        return lines.stream()
+                .map(line -> {
+                    Medicine medicine = byId.get(line.getMedicineId());
+                    if (line.getQuantity() == null) {
+                        throw new BusinessRuleException(medicine.getName()
+                                + " has no quantity to bill; cancel the prescription and write it again");
+                    }
+                    return new BillableMedicine(
+                            medicine.getName() + " " + medicine.getStrength(),
+                            line.getQuantity(),
+                            medicine.getPriceKes());
+                })
+                .toList();
+    }
+
     private Staff requireDoctor(VisitService.Actor actor) {
         return staff.findById(actor.staffId()).orElseThrow(() -> new ForbiddenException("Unknown staff"));
     }

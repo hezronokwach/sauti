@@ -85,6 +85,11 @@ public class NoteService {
         return withAddenda(note);
     }
 
+    /** Whether the visit has a signed note. Says nothing about what the note contains. */
+    public boolean isSigned(UUID visitId) {
+        return notes.findByVisitId(visitId).filter(ClinicalNote::isSigned).isPresent();
+    }
+
     /** Creates the draft on the first save, then replaces its text on each later save. */
     public NoteWithAddenda saveDraft(UUID visitId, SaveNoteRequest request, VisitService.Actor actor) {
         ClinicalNote note = openDraft(visitId, request.version(), actor);
