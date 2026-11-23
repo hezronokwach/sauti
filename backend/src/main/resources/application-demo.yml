@@ -31,3 +31,6 @@ sauti:
     provider: groq
   ai:
     provider: groq
+  demo:
+    # Adds the fake registry's made-up patients at start. Only this profile sets it.
+    seed: true
