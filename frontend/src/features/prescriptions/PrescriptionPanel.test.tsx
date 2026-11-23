@@ -21,6 +21,7 @@ const prescription = (revision: number, quantity: number | null): Prescription =
   rulesVersion: 'medicines-v1',
   revision,
   signedAt: null,
+  alerts: [],
   items: [
     {
       id: 'i1',
