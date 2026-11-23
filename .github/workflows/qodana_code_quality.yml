@@ -25,6 +25,7 @@ jobs:
         uses: JetBrains/qodana-action@v2026.2
         with:
           pr-mode: false
+          upload-result: true  # keep the results file on the run, so findings can be read in GitHub
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_1691855989 }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
