@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.UUID;
 import ke.sauti.hms.audit.AuditActor;
 import ke.sauti.hms.medication.dto.MedicineResponse;
+import ke.sauti.hms.medication.dto.OverrideAlertRequest;
 import ke.sauti.hms.medication.dto.PrescriptionItemRequest;
 import ke.sauti.hms.medication.dto.PrescriptionResponse;
+import ke.sauti.hms.medication.dto.SignPrescriptionRequest;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.visit.VisitService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,13 +23,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** The medicine search and a visit's prescription. Doctors write; the care team reads. */
 @RestController
 public class PrescriptionController {
 
-    private static final String ITEMS = "/api/visits/{visitId}/prescription/items";
+    private static final String PRESCRIPTION = "/api/visits/{visitId}/prescription";
+    private static final String ITEMS = PRESCRIPTION + "/items";
+    private static final String ALERT = PRESCRIPTION + "/alerts/{alertId}";
 
     private final PrescriptionService service;
 
@@ -77,5 +83,41 @@ public class PrescriptionController {
             @RequestParam @PositiveOrZero int revision,
             @AuthenticationPrincipal AuditActor staff) {
         return service.removeItem(visitId, itemId, revision, actor(staff));
+    }
+
+    @PostMapping(ALERT + "/override")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public PrescriptionResponse overrideAlert(
+            @PathVariable UUID visitId,
+            @PathVariable UUID alertId,
+            @Valid @RequestBody OverrideAlertRequest request,
+            @AuthenticationPrincipal AuditActor staff) {
+        return service.overrideAlert(visitId, alertId, request.reason(), request.code(), actor(staff));
+    }
+
+    @PostMapping(ALERT + "/acknowledge")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public PrescriptionResponse acknowledgeAlert(
+            @PathVariable UUID visitId, @PathVariable UUID alertId, @AuthenticationPrincipal AuditActor staff) {
+        return service.acknowledgeAlert(visitId, alertId, actor(staff));
+    }
+
+    @PostMapping(PRESCRIPTION + "/sign")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public PrescriptionResponse sign(
+            @PathVariable UUID visitId,
+            @Valid @RequestBody SignPrescriptionRequest request,
+            @AuthenticationPrincipal AuditActor staff) {
+        return service.sign(visitId, request.revision(), request.code(), actor(staff));
+    }
+
+    @PostMapping(PRESCRIPTION + "/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('DOCTOR')")
+    public void cancel(
+            @PathVariable UUID visitId,
+            @Valid @RequestBody SignPrescriptionRequest request,
+            @AuthenticationPrincipal AuditActor staff) {
+        service.cancel(visitId, request.revision(), request.code(), actor(staff));
     }
 }

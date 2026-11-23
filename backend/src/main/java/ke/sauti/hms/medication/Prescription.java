@@ -36,6 +36,12 @@ public class Prescription extends BaseEntity {
     @Column(name = "signed_at")
     private Instant signedAt;
 
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    @Column(name = "cancelled_by")
+    private UUID cancelledBy;
+
     protected Prescription() {
         // for JPA
     }
@@ -51,6 +57,25 @@ public class Prescription extends BaseEntity {
     /** Records that an item changed, so a screen holding an older copy is refused. */
     void itemsChanged() {
         revision++;
+    }
+
+    void sign(Instant at) {
+        this.status = PrescriptionStatus.SIGNED;
+        this.signedAt = at;
+    }
+
+    void cancel(UUID doctorId, Instant at) {
+        this.status = PrescriptionStatus.CANCELLED;
+        this.cancelledBy = doctorId;
+        this.cancelledAt = at;
+    }
+
+    public Instant getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public UUID getCancelledBy() {
+        return cancelledBy;
     }
 
     public boolean isDraft() {

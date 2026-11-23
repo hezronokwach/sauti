@@ -57,6 +57,18 @@ public class AllergyService {
         return repository.findByPatientIdOrderByCreatedAtAsc(patientId);
     }
 
+    /**
+     * The active entries, for the prescription safety rules. Access is checked here; the read
+     * is logged when alerts built from it are shown.
+     */
+    @Transactional(readOnly = true)
+    public List<PatientAllergy> active(UUID patientId, VisitService.Actor actor) {
+        requireAccess(patientId, actor, false);
+        return repository.findByPatientIdOrderByCreatedAtAsc(patientId).stream()
+                .filter(PatientAllergy::isActive)
+                .toList();
+    }
+
     public PatientAllergy record(UUID patientId, RecordAllergyRequest request, VisitService.Actor actor) {
         requireAccess(patientId, actor, false);
         UUID staffId = actor.staffId();

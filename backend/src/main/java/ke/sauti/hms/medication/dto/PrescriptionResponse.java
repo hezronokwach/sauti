@@ -17,6 +17,7 @@ import org.jspecify.annotations.Nullable;
  * @param revision send this back with the next change
  * @param signedAt when it was signed
  * @param items its medicines, in the order added
+ * @param alerts its safety alerts, most serious first; empty for roles that may not see allergies
  */
 public record PrescriptionResponse(
         UUID id,
@@ -25,9 +26,11 @@ public record PrescriptionResponse(
         String rulesVersion,
         int revision,
         @Nullable Instant signedAt,
-        List<PrescriptionItemResponse> items) {
+        List<PrescriptionItemResponse> items,
+        List<SafetyAlertResponse> alerts) {
 
-    public static PrescriptionResponse of(Prescription prescription, List<PrescriptionItemResponse> items) {
+    public static PrescriptionResponse of(
+            Prescription prescription, List<PrescriptionItemResponse> items, List<SafetyAlertResponse> alerts) {
         return new PrescriptionResponse(
                 prescription.getId(),
                 prescription.getVisitId(),
@@ -35,6 +38,7 @@ public record PrescriptionResponse(
                 prescription.getRulesVersion(),
                 prescription.getRevision(),
                 prescription.getSignedAt(),
-                items);
+                items,
+                alerts);
     }
 }
