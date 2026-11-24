@@ -1,0 +1,64 @@
+# Weekly dependency updates. Minor and patch updates are grouped into one pull
+# request per ecosystem; major updates come one by one because they need a real look.
+# cooldown: a version is only proposed once it has been out for 14 days, the same
+# rule used when adding dependencies by hand. Security updates are not delayed.
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    groups:
+      backend-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'Backend deps'
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    groups:
+      frontend-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # typescript-eslint supports TypeScript only up to 6.0, so a TypeScript 7 bump
+      # cannot install. Remove this once typescript-eslint supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+    commit-message:
+      prefix: 'Frontend deps'
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'CI actions'
+
+  # Pinned PostgreSQL and object storage images in compose.yaml. Testcontainers'
+  # PostgreSQL tag in TestcontainersConfiguration must be bumped to match by hand.
+  - package-ecosystem: docker-compose
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: 'Dev images'

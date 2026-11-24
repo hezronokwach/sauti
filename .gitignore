@@ -1,0 +1,32 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Build output
+target/
+build/
+dist/
+node_modules/
+
+# Audio and recordings (never commit patient or test audio)
+*.webm
+*.mp4
+*.m4a
+*.wav
+*.ogg
+*.opus
+*.mp3
+eval/recordings/
+
+# IDE and OS files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

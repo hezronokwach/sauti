@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      # verify also checks formatting (Spotless), fails on compiler and Error Prone
+      # warnings, and writes the JaCoCo coverage report.
+      - name: Build, check and test (Testcontainers uses the runner's Docker)
+        run: ./mvnw -B -ntp verify
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-coverage
+          path: backend/target/site/jacoco/
+          retention-days: 14
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
+          retention-days: 7
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  image:
+    name: Docker image build and scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the image
+        run: docker build -t sauti-hms:ci backend
+
+      # Trivy runs from an image pinned by digest. The build fails on a high or critical
+      # vulnerability that already has a fixed version.
+      - name: Scan the image
+        run: |
+          mkdir -p scan
+          docker save -o scan/image.tar sauti-hms:ci
+          docker run --rm -v "$PWD/scan:/scan:ro" \
+            aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
+            image --input /scan/image.tar --scanners vuln \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1

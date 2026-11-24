@@ -1,0 +1,36 @@
+# Public demo: real services, every connection detail from the environment.
+# The app refuses to start if any variable in sauti.required-env is missing.
+spring:
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  # Migrations run as the owner; the app logs in with only the rights it needs.
+  flyway:
+    user: ${FLYWAY_USERNAME}
+    password: ${FLYWAY_PASSWORD}
+
+sauti:
+  required-env:
+    - DATABASE_URL
+    - DATABASE_USERNAME
+    - DATABASE_PASSWORD
+    - FLYWAY_USERNAME
+    - FLYWAY_PASSWORD
+    - APP_ENCRYPTION_KEY
+    - HASH_KEY
+    - STORAGE_ENDPOINT
+    - STORAGE_BUCKET
+    - STORAGE_ACCESS_KEY
+    - STORAGE_SECRET_KEY
+    - GROQ_API_KEY
+  transcription:
+    provider: groq
+  ai:
+    provider: groq
+  demo:
+    # Adds the fake registry's made-up patients at start. Only this profile sets it.
+    seed: true

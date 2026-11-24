@@ -1,0 +1,7 @@
+# Send Docker only what the build needs, so secrets and local files can never enter an image.
+*
+!.mvn/
+!mvnw
+!pom.xml
+!src/
+src/test/

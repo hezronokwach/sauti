@@ -1,0 +1,117 @@
+# Shared settings for every profile.
+# Secrets are never written here: use ${ENV_NAME} and list the name in .env.example.
+spring:
+  application:
+    name: sauti-hms
+  profiles:
+    # Running from the IDE without SPRING_PROFILES_ACTIVE gives the dev profile.
+    default: dev
+  session:
+    # Spring Session deletes a session after 15 minutes without a request.
+    timeout: 15m
+    jdbc:
+      # Flyway creates the session tables (V3__spring_session.sql).
+      initialize-schema: never
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway owns the schema; Hibernate only checks entities match it.
+      ddl-auto: validate
+
+server:
+  # Set to native only behind a trusted proxy, or clients could fake their address.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        # Browsers accept Secure cookies on http://localhost, so dev still works.
+        secure: true
+        same-site: strict
+
+logging:
+  pattern:
+    # Every log line carries the request id set by RequestIdFilter ("-" outside a request).
+    correlation: "[%X{requestId:--}] "
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+sauti:
+  # Environment variables that must be set before the app may start.
+  # Each profile that talks to real services lists its own.
+  required-env: []
+  first-admin:
+    # Used only while the staff table is empty; see FirstAdminSetup.
+    email: ${FIRST_ADMIN_EMAIL:}
+    password: ${FIRST_ADMIN_PASSWORD:}
+    name: ${FIRST_ADMIN_NAME:Administrator}
+  storage:
+    # S3-compatible storage for encrypted audio pieces.
+    endpoint: ${STORAGE_ENDPOINT:}
+    bucket: ${STORAGE_BUCKET:sauti-audio}
+    access-key: ${STORAGE_ACCESS_KEY:}
+    secret-key: ${STORAGE_SECRET_KEY:}
+    region: ${STORAGE_REGION:auto}
+    create-bucket: false
+  transcription:
+    # fake (development and tests) or groq (demo, needs GROQ_API_KEY).
+    provider: fake
+    groq:
+      base-url: https://api.groq.com/openai/v1
+      api-key: ${GROQ_API_KEY:}
+      model: whisper-large-v3
+      connect-timeout: 5s
+      read-timeout: 60s
+  ai:
+    # fake (development and tests) or groq (demo, needs GROQ_API_KEY).
+    provider: fake
+    groq:
+      base-url: https://api.groq.com/openai/v1
+      api-key: ${GROQ_API_KEY:}
+      # Pinned: a model change is a decision, recorded with every request.
+      model: openai/gpt-oss-120b
+      connect-timeout: 5s
+      read-timeout: 20s
+  speech:
+    # browser (the browser speaks the text), azure (needs a key) or fake (tests).
+    provider: ${SPEECH_PROVIDER:browser}
+    azure:
+      region: ${AZURE_SPEECH_REGION:}
+      api-key: ${AZURE_SPEECH_KEY:}
+      connect-timeout: 5s
+      read-timeout: 15s
+  mpesa:
+    # fake (development and tests) or daraja (needs the keys below).
+    provider: ${MPESA_PROVIDER:fake}
+    # At least 32 random characters; it is part of the public callback address.
+    callback-secret: ${MPESA_CALLBACK_SECRET:}
+    daraja:
+      base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
+      consumer-key: ${MPESA_CONSUMER_KEY:}
+      consumer-secret: ${MPESA_CONSUMER_SECRET:}
+      shortcode: ${MPESA_SHORTCODE:}
+      passkey: ${MPESA_PASSKEY:}
+      callback-base-url: ${MPESA_CALLBACK_BASE_URL:}
+      connect-timeout: 5s
+      read-timeout: 20s
+  cleanup:
+    # Confirm these periods against the legal schedule before real use.
+    audio-retention: ${CLEANUP_AUDIO_RETENTION:30d}
+    orphan-grace: 1d
+    cron: "0 30 2 * * *"
+  billing:
+    # A demonstration amount in Kenya shillings until the facility sets its own.
+    consultation-fee-kes: ${CONSULTATION_FEE_KES:500}
+  crypto:
+    # 32 random bytes each, Base64 (openssl rand -base64 32). Never the same key twice.
+    encryption-key: ${APP_ENCRYPTION_KEY:}
+    hash-key: ${HASH_KEY:}
