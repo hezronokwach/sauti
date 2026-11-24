@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { bodyOf, jsonResponse, mockApi, renderWithQuery } from '../../test/render';
 import { AllergyList } from './AllergyList';
+import { allergyState } from './api';
 import type { AllergyResponse } from './types';
 import { VitalsForm } from './VitalsForm';
 
@@ -177,5 +178,59 @@ describe('AllergyList', () => {
     renderWithQuery(<AllergyList patientId="p-1" />);
 
     expect(await screen.findByText('No known allergies.')).toBeInTheDocument();
+  });
+
+  it('records that the patient has no known allergies', async () => {
+    const entries: AllergyResponse[] = [];
+    const sent: unknown[] = [];
+    mockApi({
+      'GET /api/patients/p-1/allergies': () => jsonResponse(200, entries),
+      'POST /api/patients/p-1/allergies': (init) => {
+        sent.push(bodyOf(init));
+        entries.push(allergy({ kind: 'NO_KNOWN_ALLERGIES', substance: null, reaction: null }));
+        return jsonResponse(200, entries[0]);
+      },
+    });
+    const user = userEvent.setup({ delay: null });
+    renderWithQuery(<AllergyList patientId="p-1" editable />);
+
+    await user.click(await screen.findByRole('button', { name: 'No known allergies' }));
+
+    expect(await screen.findByText('No known allergies.')).toBeInTheDocument();
+    expect(sent).toEqual([{ noKnownAllergies: true }]);
+    expect(screen.queryByRole('button', { name: 'No known allergies' })).not.toBeInTheDocument();
+  });
+
+  it('adds an allergy with its reaction, and asks for the substance first', async () => {
+    const entries: AllergyResponse[] = [];
+    const sent: unknown[] = [];
+    mockApi({
+      'GET /api/patients/p-1/allergies': () => jsonResponse(200, entries),
+      'POST /api/patients/p-1/allergies': (init) => {
+        sent.push(bodyOf(init));
+        entries.push(allergy({ substance: 'Sulfa', reaction: 'Swelling' }));
+        return jsonResponse(200, entries[0]);
+      },
+    });
+    const user = userEvent.setup({ delay: null });
+    renderWithQuery(<AllergyList patientId="p-1" editable />);
+
+    await user.click(await screen.findByRole('button', { name: 'Add allergy' }));
+    expect(screen.getByText('Write what the patient reacts to')).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('Reacts to'), 'Sulfa');
+    await user.type(screen.getByLabelText('Reaction (optional)'), 'Swelling');
+    await user.click(screen.getByRole('button', { name: 'Add allergy' }));
+
+    expect(await screen.findByText('Sulfa')).toBeInTheDocument();
+    expect(sent).toEqual([{ substance: 'Sulfa', reaction: 'Swelling' }]);
+  });
+
+  it('works out the banner flag from the entries', () => {
+    expect(allergyState(undefined)).toBe('loading');
+    expect(allergyState([])).toBe('not-asked');
+    expect(allergyState([allergy({ status: 'ENTERED_IN_ERROR' })])).toBe('not-asked');
+    expect(allergyState([allergy({ kind: 'NO_KNOWN_ALLERGIES', substance: null })])).toBe('none');
+    expect(allergyState([allergy({})])).toBe('allergic');
   });
 });
