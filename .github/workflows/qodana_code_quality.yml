@@ -4,7 +4,8 @@ on:
   pull_request:
   push:
     branches:
-      - staging # the default branch: scan everything that gets merged
+      - staging # where work is merged first
+      - main # the live branch
 
 jobs:
   qodana:
