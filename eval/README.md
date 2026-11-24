@@ -33,6 +33,35 @@ If a speaker says something different from the script (a skipped word, a differe
 write exactly what was said in `references/sNN-pP.txt`, in the same `A:`/`B:` form. The runner
 uses that file instead of the script for that recording.
 
+## Running the evaluation
+
+With the recordings in `eval/recordings/`, the local database running (Docker Desktop) and
+`GROQ_API_KEY` in `.env`, run from `backend/`:
+
+```powershell
+$env:TRANSCRIPTION_PROVIDER='groq'; .\mvnw spring-boot:run "-Dspring-boot.run.profiles=dev,eval"
+```
+
+It sends each recording through the same transcriber and the same keep-or-drop filter as the
+app (the medicine glossary as the prompt), compares the kept text with the reference, writes
+`eval/results/<date>-<model>.md` and stops. The audio goes to Groq, so only use recordings of
+people who agreed to that. Settings for comparing runs, added to the same command:
+
+| Setting | Example | Default |
+| --- | --- | --- |
+| Model | `"-Dspring-boot.run.arguments=--sauti.transcription.groq.model=whisper-large-v3-turbo"` | `whisper-large-v3` |
+| Language hint | `--sauti.eval.language-hint=sw` (or `en`) | none |
+| Glossary off | `--sauti.eval.glossary=false` | on |
+
+Several settings go in one `-Dspring-boot.run.arguments=...`, separated by commas.
+
+The results file has the word error rate over all words, per recording and for quiet and noisy
+recordings, the worst five, and a list of every difference touching a number, a medicine name
+or a negation. Read that list by eye: overall accuracy can look fine while "no allergy" becomes
+"allergy". Before comparing, both texts are lower-cased, punctuation is dropped (a decimal
+point stays), "500mg" becomes "500 milligrams", and spoken numbers in English and Swahili
+become digits ("thelathini na nne" and "thirty four" both become 34).
+
 ## Where the audio lives
 
 Audio is never committed. Keep the recordings in `eval/recordings/` (ignored by Git) on the
