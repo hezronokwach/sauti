@@ -8,7 +8,8 @@ import { ReasonSummary } from '../drafts/ReasonSummary';
 import { VoiceFields } from '../drafts/VoiceFields';
 import { DoctorVisit } from '../notes/DoctorVisit';
 import type { PatientDetailsResponse } from '../patients/types';
-import { AllergyList, AllergyReminder } from '../triage/AllergyList';
+import { AllergyList } from '../triage/AllergyList';
+import { allergyState, usePatientAllergies } from '../triage/api';
 import { VitalsForm } from '../triage/VitalsForm';
 import { VitalsSummary } from '../triage/VitalsSummary';
 import { FinishConsultation } from './FinishConsultation';
@@ -63,15 +64,13 @@ export function VisitPage() {
                 <AllergyList patientId={visit.data.patientId} editable />
               </div>
               {visit.data.status === 'IN_TRIAGE' ? (
-                <div>
-                  <AllergyReminder patientId={visit.data.patientId} />
-                  <VitalsForm
-                    visitId={visitId}
-                    onRecorded={() => {
-                      void navigate(ROLE_HOME[staff.role]);
-                    }}
-                  />
-                </div>
+                <TriageVitals
+                  visitId={visitId}
+                  patientId={visit.data.patientId}
+                  onRecorded={() => {
+                    void navigate(ROLE_HOME[staff.role]);
+                  }}
+                />
               ) : (
                 <VitalsSummary visitId={visitId} />
               )}
@@ -102,4 +101,25 @@ export function VisitPage() {
       )}
     </main>
   );
+}
+
+interface TriageVitalsProps {
+  visitId: string;
+  patientId: string;
+  onRecorded: () => void;
+}
+
+/**
+ * The vitals form, which cannot send the patient on until allergies are answered (an
+ * allergy or "no known allergies"). The backend refuses it too.
+ */
+function TriageVitals({ visitId, patientId, onRecorded }: TriageVitalsProps) {
+  const state = allergyState(usePatientAllergies(patientId).data);
+  const blockedBy =
+    state === 'not-asked'
+      ? 'Ask about allergies first. Record what the patient reacts to, or press No known allergies.'
+      : state === 'loading'
+        ? 'Checking allergies...'
+        : undefined;
+  return <VitalsForm visitId={visitId} onRecorded={onRecorded} blockedBy={blockedBy} />;
 }

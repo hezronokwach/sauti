@@ -25,6 +25,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.visit.VisitService;
 import ke.sauti.hms.visit.VisitStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,8 +112,13 @@ class PrescriptionSafetyTest {
         visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         visits.take(visitId, actor(nurse));
+        UUID triageAnswer =
+                allergies.record(patientId, Allergies.NONE_KNOWN, actor(nurse)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         visits.take(visitId, actor(doctor));
+        // Each test starts as if allergies were never asked (as for visits from before triage
+        // required them), then records what it needs.
+        allergies.markEnteredInError(patientId, triageAnswer, "Test starts with nothing recorded", actor(doctor));
     }
 
     private static VisitService.Actor actor(Staff staff) {

@@ -30,6 +30,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.visit.VisitService;
 import ke.sauti.hms.visit.VisitStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -122,6 +123,7 @@ class BillingTest {
         visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         visits.take(visitId, actor(nurse));
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         visits.take(visitId, actor(doctor));
         allergies.record(patientId, new RecordAllergyRequest(true, null, null, null), actor(nurse));

@@ -15,6 +15,7 @@ import ke.sauti.hms.TestcontainersConfiguration;
 import ke.sauti.hms.cleanup.NightlyCleanup;
 import ke.sauti.hms.note.NoteService;
 import ke.sauti.hms.note.dto.SaveNoteRequest;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -25,6 +26,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.support.SeaweedFs;
 import ke.sauti.hms.visit.VisitService;
 import ke.sauti.hms.visit.VisitStatus;
@@ -74,6 +76,9 @@ class NightlyCleanupTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private ConsentService consents;
@@ -137,6 +142,7 @@ class NightlyCleanupTest {
         UUID visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         visits.take(visitId, actor(nurse));
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         visits.take(visitId, actor(doctor));
         consents.record(

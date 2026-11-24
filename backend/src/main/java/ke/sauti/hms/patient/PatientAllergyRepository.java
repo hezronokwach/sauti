@@ -10,4 +10,6 @@ public interface PatientAllergyRepository extends JpaRepository<PatientAllergy, 
     List<PatientAllergy> findByPatientIdOrderByCreatedAtAsc(UUID patientId);
 
     Optional<PatientAllergy> findByIdAndPatientId(UUID id, UUID patientId);
+
+    boolean existsByPatientIdAndStatus(UUID patientId, AllergyStatus status);
 }

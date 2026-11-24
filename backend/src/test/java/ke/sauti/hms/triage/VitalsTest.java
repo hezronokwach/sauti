@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import ke.sauti.hms.TestcontainersConfiguration;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -20,6 +21,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.visit.VisitService;
 import ke.sauti.hms.visit.VisitStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +57,9 @@ class VitalsTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -93,6 +98,12 @@ class VitalsTest {
     }
 
     private UUID visitInTriage() {
+        UUID visitId = visitInTriageNotAskedAboutAllergies();
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
+        return visitId;
+    }
+
+    private UUID visitInTriageNotAskedAboutAllergies() {
         UUID visitId = visitWaitingForTriage();
         visits.take(visitId, actor(nurse));
         return visitId;
@@ -138,6 +149,21 @@ class VitalsTest {
                         Long.class,
                         visitId))
                 .isEqualTo(1);
+    }
+
+    @Test
+    void thePatientStaysInTriageUntilAllergiesAreAsked() throws Exception {
+        UUID visitId = visitInTriageNotAskedAboutAllergies();
+
+        record(nurse, visitId, normal())
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "Record the patient's allergies, or no known allergies, before sending them to the doctor"));
+
+        assertThat(vitalsRows(visitId)).isZero();
+        assertThat(visits.get(visitId).getStatus()).isEqualTo(VisitStatus.IN_TRIAGE);
     }
 
     @Test

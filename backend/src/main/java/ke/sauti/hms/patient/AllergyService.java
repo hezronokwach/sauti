@@ -69,6 +69,15 @@ public class AllergyService {
                 .toList();
     }
 
+    /**
+     * Whether someone has asked the patient about allergies: an active allergy or an active
+     * "no known allergies". No access check; it answers yes or no and shows nothing.
+     */
+    @Transactional(readOnly = true)
+    public boolean isRecorded(UUID patientId) {
+        return repository.existsByPatientIdAndStatus(patientId, AllergyStatus.ACTIVE);
+    }
+
     public PatientAllergy record(UUID patientId, RecordAllergyRequest request, VisitService.Actor actor) {
         requireAccess(patientId, actor, false);
         UUID staffId = actor.staffId();

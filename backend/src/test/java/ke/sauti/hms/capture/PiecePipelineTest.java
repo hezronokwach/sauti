@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import ke.sauti.hms.TestcontainersConfiguration;
 import ke.sauti.hms.jobs.JobWorker;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -20,6 +21,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.support.SeaweedFs;
 import ke.sauti.hms.visit.VisitService;
 import ke.sauti.hms.visit.VisitStatus;
@@ -63,6 +65,9 @@ class PiecePipelineTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private ConsentService consents;
@@ -116,6 +121,7 @@ class PiecePipelineTest {
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         Staff triageNurse = ActingAs.staff(staffRepository, StaffRole.NURSE);
         visits.take(visitId, actor(triageNurse));
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(triageNurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(triageNurse));
         visits.take(visitId, actor(recordingDoctor));
         consents.record(

@@ -19,6 +19,7 @@ import ke.sauti.hms.capture.ConsentGivenBy;
 import ke.sauti.hms.capture.ConsentPurpose;
 import ke.sauti.hms.capture.ConsentService;
 import ke.sauti.hms.common.crypto.ColumnCipher;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -26,6 +27,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.visit.VisitService;
 import ke.sauti.hms.visit.VisitStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,6 +67,9 @@ class ClaimAcceptTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private ConsentService consent;
@@ -109,6 +114,7 @@ class ClaimAcceptTest {
         UUID visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         visits.take(visitId, actor(nurse));
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         visits.take(visitId, actor(doctor));
         consent.record(

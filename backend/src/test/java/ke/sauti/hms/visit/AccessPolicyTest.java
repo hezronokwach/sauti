@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 import ke.sauti.hms.TestcontainersConfiguration;
 import ke.sauti.hms.common.error.ForbiddenException;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -20,6 +21,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.support.FixedClockConfiguration;
 import ke.sauti.hms.support.MutableClock;
 import ke.sauti.hms.support.MutableClockConfiguration;
@@ -51,6 +53,9 @@ class AccessPolicyTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private AccessPolicy policy;
@@ -146,6 +151,7 @@ class AccessPolicyTest {
     void accessLastsTwentyFourHoursAfterHandingThePatientOn() {
         UUID patientId = newPatient();
         UUID visitId = visitInTriage(patientId);
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
 
         clock.advance(Duration.ofHours(23));
@@ -181,6 +187,7 @@ class AccessPolicyTest {
     void aDoctorOnTheCurrentVisitMayOpenPastSignedRecordsButNotOthersDataFromThem() {
         UUID patientId = newPatient();
         UUID oldVisit = visitInTriage(patientId);
+        allergies.record(visits.get(oldVisit).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(oldVisit, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         Staff firstDoctor = ActingAs.staff(staffRepository, StaffRole.DOCTOR);
         visits.take(oldVisit, actor(firstDoctor));
@@ -190,6 +197,7 @@ class AccessPolicyTest {
         clock.advance(Duration.ofDays(30));
 
         UUID newVisit = visitInTriage(patientId);
+        allergies.record(visits.get(newVisit).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(newVisit, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         visits.take(newVisit, actor(doctor));
 

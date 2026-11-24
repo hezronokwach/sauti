@@ -12,6 +12,7 @@ import ke.sauti.hms.common.error.ConflictException;
 import ke.sauti.hms.common.error.ForbiddenException;
 import ke.sauti.hms.common.error.NotFoundException;
 import ke.sauti.hms.common.time.FacilityTime;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.queue.QueueTicketService;
 import ke.sauti.hms.staff.StaffRole;
@@ -41,6 +42,7 @@ public class VisitService {
     private final Clock clock;
     private final AccessPolicy accessPolicy;
     private final QueueTicketService tickets;
+    private final AllergyService allergies;
 
     public VisitService(
             VisitRepository visits,
@@ -52,8 +54,10 @@ public class VisitService {
             FacilityTime facilityTime,
             Clock clock,
             AccessPolicy accessPolicy,
-            QueueTicketService tickets) {
+            QueueTicketService tickets,
+            AllergyService allergies) {
         this.tickets = tickets;
+        this.allergies = allergies;
         this.visits = visits;
         this.queueNumbers = queueNumbers;
         this.history = history;
@@ -220,6 +224,12 @@ public class VisitService {
         if (VisitWorkflow.HELD.contains(from)
                 && open.stream().noneMatch(a -> a.getStaffId().equals(actor.staffId()))) {
             throw new ForbiddenException("Only the person looking after this patient can move them on");
+        }
+        // The doctor must know about allergies before prescribing, so triage cannot end without
+        // the question answered.
+        if (to == VisitStatus.WAITING_DOCTOR && !allergies.isRecorded(visit.getPatientId())) {
+            throw new BusinessRuleException(
+                    "Record the patient's allergies, or no known allergies, before sending them to the doctor");
         }
         String cancelReason = StringUtils.hasText(reason) ? reason.trim() : null;
         if (to == VisitStatus.CANCELLED && cancelReason == null) {

@@ -15,12 +15,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import ke.sauti.hms.TestcontainersConfiguration;
 import ke.sauti.hms.common.error.ConflictException;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +37,9 @@ class VisitConcurrencyTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private PatientService patients;
@@ -97,6 +102,7 @@ class VisitConcurrencyTest {
         UUID visitId = visits.open(newPatient(), null, reception).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, reception);
         visits.take(visitId, nurse);
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, nurse);
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, nurse);
         VisitService.Actor first = actor(StaffRole.DOCTOR);
         VisitService.Actor second = actor(StaffRole.DOCTOR);
