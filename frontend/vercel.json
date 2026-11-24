@@ -5,7 +5,11 @@
       "source": "/api/:path*",
       "destination": "https://sauti-backend-31o0.onrender.com/api/:path*"
     },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    {
+      "source": "/actuator/health",
+      "destination": "https://sauti-backend-31o0.onrender.com/actuator/health"
+    },
+    { "source": "/((?!api/|actuator/|assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

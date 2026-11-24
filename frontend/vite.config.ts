@@ -3,7 +3,8 @@ import { defineConfig } from 'vitest/config';
 
 // The dev server forwards API calls to the Spring Boot backend, so the browser only
 // ever talks to one site: the session cookie then works without any CORS setup.
-// /actuator is forwarded in development only, for the health check on the home page.
+// /actuator is forwarded for the health check shown on every page; on Vercel, vercel.json
+// forwards /api and only /actuator/health.
 const backend = process.env.BACKEND_URL ?? 'http://localhost:8080';
 
 export default defineConfig({
