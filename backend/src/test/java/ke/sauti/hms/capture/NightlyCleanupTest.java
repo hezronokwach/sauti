@@ -137,13 +137,15 @@ class NightlyCleanupTest {
         UUID visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         visits.take(visitId, actor(nurse));
+        visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
+        visits.take(visitId, actor(doctor));
         consents.record(
                 visitId,
                 ConsentPurpose.RECORD_CONSULTATION,
                 ConsentDecision.AGREED,
                 ConsentGivenBy.PATIENT,
-                actor(nurse));
-        UUID sessionId = captures.start(visitId, ConsentPurpose.RECORD_CONSULTATION, "sw", actor(nurse))
+                actor(doctor));
+        UUID sessionId = captures.start(visitId, ConsentPurpose.RECORD_CONSULTATION, "sw", actor(doctor))
                 .getId();
         byte[] audio = ("audio " + UUID.randomUUID()).getBytes(StandardCharsets.UTF_8);
         AudioPiece piece = pieces.receive(
@@ -151,17 +153,15 @@ class NightlyCleanupTest {
                         new PieceService.Upload(
                                 0, "audio/webm;codecs=opus", PieceService.sha256(audio), 30_000, 0, null),
                         audio,
-                        actor(nurse))
+                        actor(doctor))
                 .piece();
-        captures.stop(sessionId, 1, actor(nurse));
+        captures.stop(sessionId, 1, actor(doctor));
         jdbc.update(
                 "insert into transcript_segment (piece_id, session_id, order_no, start_ms, end_ms, text, confidence)"
                         + " values (?, ?, 0, 0, 1000, ?, 'HIGH')",
                 piece.getId(),
                 sessionId,
                 new byte[] {1, 2, 3});
-        visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
-        visits.take(visitId, actor(doctor));
         return new Recording(visitId, sessionId, piece.getId(), piece.getStorageKey());
     }
 

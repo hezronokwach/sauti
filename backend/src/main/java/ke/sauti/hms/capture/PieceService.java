@@ -96,6 +96,7 @@ public class PieceService {
             throw new ConflictException("A different piece " + upload.sequenceNo() + " was already received");
         }
 
+        requireAllowedField(session.getPurpose(), upload.field());
         consents.requireAgreed(session.getVisitId(), session.getPurpose());
         check(upload, audio, mimeType, sha256);
 
@@ -107,6 +108,14 @@ public class PieceService {
         AudioPiece piece = pieces.saveAndFlush(newPiece);
         jobs.enqueue(TranscribeHandler.TYPE, piece.getId());
         return new Received(piece, true);
+    }
+
+    /** Reception audio is only ever the reason for visit; a consultation fills no form field. */
+    private static void requireAllowedField(ConsentPurpose purpose, DraftField field) {
+        DraftField allowed = purpose == ConsentPurpose.RECORD_RECEPTION ? DraftField.REASON_FOR_VISIT : null;
+        if (field != allowed) {
+            throw new BusinessRuleException("This recording cannot be used for that field");
+        }
     }
 
     private static String baseType(String mimeType) {

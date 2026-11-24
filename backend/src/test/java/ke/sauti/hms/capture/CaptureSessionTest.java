@@ -59,20 +59,20 @@ class CaptureSessionTest {
     private CaptureSessionRepository sessions;
 
     private Staff reception;
-    private Staff nurse;
+    private Staff recordingDoctor;
 
     @BeforeEach
     void setUp() {
         reception = ActingAs.staff(staffRepository, StaffRole.RECEPTIONIST);
-        nurse = ActingAs.staff(staffRepository, StaffRole.NURSE);
+        recordingDoctor = ActingAs.staff(staffRepository, StaffRole.DOCTOR);
     }
 
     private static VisitService.Actor actor(Staff staff) {
         return new VisitService.Actor(staff.getId(), staff.getRole());
     }
 
-    /** A visit the nurse has taken into triage. */
-    private UUID visitInTriage() {
+    /** A visit that has passed triage and that the doctor has taken. */
+    private UUID visitWithDoctor() {
         UUID patientId = patients.register(new RegisterPatientRequest(
                         "Capture Patient",
                         LocalDate.of(1979, 6, 30),
@@ -89,7 +89,10 @@ class CaptureSessionTest {
                 .getId();
         UUID visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
-        visits.take(visitId, actor(nurse));
+        Staff triageNurse = ActingAs.staff(staffRepository, StaffRole.NURSE);
+        visits.take(visitId, actor(triageNurse));
+        visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(triageNurse));
+        visits.take(visitId, actor(recordingDoctor));
         return visitId;
     }
 
@@ -111,9 +114,9 @@ class CaptureSessionTest {
 
     @Test
     void startingWithoutConsentIsRefused() throws Exception {
-        UUID visitId = visitInTriage();
+        UUID visitId = visitWithDoctor();
 
-        start(nurse, visitId, "RECORD_CONSULTATION")
+        start(recordingDoctor, visitId, "RECORD_CONSULTATION")
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.message").value("Recording needs the patient's consent first"));
         assertThat(sessions.findAll()).noneMatch(s -> s.getVisitId().equals(visitId));
@@ -121,10 +124,10 @@ class CaptureSessionTest {
 
     @Test
     void withConsentTheRecordingStartsAndStops() throws Exception {
-        UUID visitId = visitInTriage();
-        agree(visitId, nurse);
+        UUID visitId = visitWithDoctor();
+        agree(visitId, recordingDoctor);
 
-        String id = JSON.readTree(start(nurse, visitId, "RECORD_CONSULTATION")
+        String id = JSON.readTree(start(recordingDoctor, visitId, "RECORD_CONSULTATION")
                         .andExpect(status().isCreated())
                         .andExpect(jsonPath("$.status").value("RECORDING"))
                         .andExpect(jsonPath("$.languageHint").value("sw"))
@@ -137,7 +140,7 @@ class CaptureSessionTest {
         mvc.perform(post("/api/captures/" + id + "/stop")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"expectedPieces\":4}")
-                        .with(as(nurse)))
+                        .with(as(recordingDoctor)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("STOPPED"))
                 .andExpect(jsonPath("$.expectedPieces").value(4));
@@ -145,17 +148,17 @@ class CaptureSessionTest {
 
     @Test
     void oneRecordingAtATimePerVisitAndPurpose() throws Exception {
-        UUID visitId = visitInTriage();
-        agree(visitId, nurse);
-        start(nurse, visitId, "RECORD_CONSULTATION").andExpect(status().isCreated());
+        UUID visitId = visitWithDoctor();
+        agree(visitId, recordingDoctor);
+        start(recordingDoctor, visitId, "RECORD_CONSULTATION").andExpect(status().isCreated());
 
-        start(nurse, visitId, "RECORD_CONSULTATION").andExpect(status().isConflict());
+        start(recordingDoctor, visitId, "RECORD_CONSULTATION").andExpect(status().isConflict());
     }
 
     @Test
     void theRoleMustFitThePurpose() throws Exception {
-        UUID visitId = visitInTriage();
-        agree(visitId, nurse);
+        UUID visitId = visitWithDoctor();
+        agree(visitId, recordingDoctor);
 
         start(reception, visitId, "RECORD_CONSULTATION")
                 .andExpect(status().isForbidden())
@@ -163,9 +166,19 @@ class CaptureSessionTest {
     }
 
     @Test
+    void aNurseCannotRecord() throws Exception {
+        UUID visitId = visitWithDoctor();
+        agree(visitId, recordingDoctor);
+
+        start(ActingAs.staff(staffRepository, StaffRole.NURSE), visitId, "RECORD_CONSULTATION")
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Your role does not make this kind of recording"));
+    }
+
+    @Test
     void someoneNotLookingAfterThePatientCannotRecord() throws Exception {
-        UUID visitId = visitInTriage();
-        agree(visitId, nurse);
+        UUID visitId = visitWithDoctor();
+        agree(visitId, recordingDoctor);
 
         start(ActingAs.staff(staffRepository, StaffRole.DOCTOR), visitId, "RECORD_CONSULTATION")
                 .andExpect(status().isForbidden());
@@ -173,9 +186,9 @@ class CaptureSessionTest {
 
     @Test
     void withdrawingConsentStopsTheRecording() throws Exception {
-        UUID visitId = visitInTriage();
-        agree(visitId, nurse);
-        UUID sessionId = UUID.fromString(JSON.readTree(start(nurse, visitId, "RECORD_CONSULTATION")
+        UUID visitId = visitWithDoctor();
+        agree(visitId, recordingDoctor);
+        UUID sessionId = UUID.fromString(JSON.readTree(start(recordingDoctor, visitId, "RECORD_CONSULTATION")
                         .andReturn()
                         .getResponse()
                         .getContentAsString())
@@ -187,10 +200,10 @@ class CaptureSessionTest {
                 ConsentPurpose.RECORD_CONSULTATION,
                 ConsentDecision.WITHDRAWN,
                 ConsentGivenBy.PATIENT,
-                actor(nurse));
+                actor(recordingDoctor));
 
         CaptureSession session = sessions.findById(sessionId).orElseThrow();
         assertThat(session.getStatus()).isEqualTo(CaptureStatus.STOPPED);
-        start(nurse, visitId, "RECORD_CONSULTATION").andExpect(status().isUnprocessableContent());
+        start(recordingDoctor, visitId, "RECORD_CONSULTATION").andExpect(status().isUnprocessableContent());
     }
 }

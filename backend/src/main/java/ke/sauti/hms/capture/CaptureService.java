@@ -33,10 +33,10 @@ public class CaptureService {
 
     private static final String SESSION = CaptureSession.class.getSimpleName();
 
-    /** Reception records at the desk; nurses and doctors record consultations. */
+    /** Reception dictates the reason for visit; only doctors record consultations. Nurses type. */
     static final Map<ConsentPurpose, Set<StaffRole>> RECORDERS = Map.of(
             ConsentPurpose.RECORD_RECEPTION, Set.of(StaffRole.RECEPTIONIST),
-            ConsentPurpose.RECORD_CONSULTATION, Set.of(StaffRole.NURSE, StaffRole.DOCTOR));
+            ConsentPurpose.RECORD_CONSULTATION, Set.of(StaffRole.DOCTOR));
 
     private final CaptureSessionRepository sessions;
     private final ConsentService consents;
