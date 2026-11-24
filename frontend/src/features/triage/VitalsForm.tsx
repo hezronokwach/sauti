@@ -85,13 +85,15 @@ interface VitalsFormProps {
   visitId: string;
   /** Called once the vitals are saved and the patient is in the doctor's queue. */
   onRecorded: () => void;
+  /** Why the patient cannot go to the doctor yet; the readings can still be typed. */
+  blockedBy?: string;
 }
 
 /**
  * The nurse's vitals form. Values outside human limits are refused here and again by the
  * backend; saving sends the patient on to the doctor.
  */
-export function VitalsForm({ visitId, onRecorded }: VitalsFormProps) {
+export function VitalsForm({ visitId, onRecorded, blockedBy }: VitalsFormProps) {
   const form = useForm<FormInput, unknown, FormOutput>({ resolver: zodResolver(schema) });
   const record = useRecordVitals(visitId);
   const { errors } = form.formState;
@@ -139,7 +141,16 @@ export function VitalsForm({ visitId, onRecorded }: VitalsFormProps) {
         {record.error && serverFieldErrors.length === 0 ? (
           <p role="alert">{errorMessage(record.error)}</p>
         ) : null}
-        <button type="submit" disabled={record.isPending}>
+        {blockedBy ? (
+          <p id="vitals-blocked" className="notice">
+            {blockedBy}
+          </p>
+        ) : null}
+        <button
+          type="submit"
+          disabled={record.isPending || Boolean(blockedBy)}
+          aria-describedby={blockedBy ? 'vitals-blocked' : undefined}
+        >
           {record.isPending ? 'Saving...' : 'Save and send to doctor'}
         </button>
       </form>

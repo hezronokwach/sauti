@@ -90,6 +90,22 @@ describe('VitalsForm', () => {
     ]);
   });
 
+  it('cannot send the patient on until allergies are answered, and says why', async () => {
+    const fetchMock = mockApi({});
+    const user = userEvent.setup({ delay: null });
+    renderWithQuery(
+      <VitalsForm visitId="visit-1" onRecorded={vi.fn()} blockedBy="Ask about allergies first." />,
+    );
+
+    await fillNormal(user);
+    const send = screen.getByRole('button', { name: 'Save and send to doctor' });
+
+    expect(send).toBeDisabled();
+    expect(send).toHaveAccessibleDescription('Ask about allergies first.');
+    await user.click(send);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('refuses impossible values field by field without sending anything', async () => {
     const fetchMock = mockApi({});
     const user = userEvent.setup({ delay: null });

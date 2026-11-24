@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ApiRequestError, errorMessage } from '../../api/client';
-import { allergyState, usePatientAllergies, useRecordAllergy } from './api';
+import { usePatientAllergies, useRecordAllergy } from './api';
 
 interface AllergyListProps {
   patientId: string;
@@ -123,12 +123,4 @@ function AllergyForm({ patientId, asked }: { patientId: string; asked: boolean }
       </div>
     </form>
   );
-}
-
-/** A reminder beside the vitals form until the allergy question has been answered. */
-export function AllergyReminder({ patientId }: { patientId: string }) {
-  const allergies = usePatientAllergies(patientId);
-  return allergyState(allergies.data) === 'not-asked' ? (
-    <p className="notice">Ask about allergies before sending the patient to the doctor.</p>
-  ) : null;
 }
