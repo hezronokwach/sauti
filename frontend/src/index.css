@@ -1439,3 +1439,57 @@ button.take-next {
   color: var(--blue-700);
   cursor: pointer;
 }
+
+/* Reception: the desk's work on the left (wider), today's lists on the right. */
+.reception-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  align-items: start;
+}
+
+.reception-layout > * {
+  min-width: 0;
+}
+
+@media (width >= 80rem) {
+  .reception-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+/* The waiting-time report: plain headline numbers above the table. */
+.report-headline {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  margin: 0.75rem 0 1rem;
+}
+
+.report-headline p {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--blue-50);
+}
+
+.report-headline strong {
+  font-size: 1.125rem;
+}
+
+.report-help {
+  margin-top: 1rem;
+}
+
+.report-help summary {
+  color: var(--blue-700);
+  cursor: pointer;
+}
+
+.report-help dt {
+  font-weight: 700;
+}
+
+.report-help dd {
+  margin: 0 0 0.5rem;
+}
