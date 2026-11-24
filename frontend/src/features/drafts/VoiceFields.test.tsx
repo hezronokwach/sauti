@@ -2,12 +2,11 @@ import { fireEvent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { bodyOf, jsonResponse, mockApi, renderWithQuery } from '../../test/render';
 import type { PatientDetailsResponse } from '../patients/types';
-import { focusField } from '../recorder/activeRecorder';
 import { ReasonConfirm } from './ReasonConfirm';
 import { VoiceFields } from './VoiceFields';
 import type { FieldDraftResponse } from './api';
 
-vi.mock('../recorder/activeRecorder', () => ({ focusField: vi.fn() }));
+vi.mock('./ReasonDictation', () => ({ ReasonDictation: () => <button>Use voice</button> }));
 vi.mock('../transcript/playAudio', () => ({ playAt: vi.fn(() => Promise.resolve(null)) }));
 
 const PATIENT: PatientDetailsResponse = {
@@ -45,52 +44,52 @@ describe('VoiceFields', () => {
     document.cookie = 'XSRF-TOKEN=t; path=/';
   });
 
-  it('tells the recorder which field reception is on', async () => {
+  it('offers voice on the reason for visit only', async () => {
     mockApi({
       'GET /api/visits/v-1/reason': () =>
         jsonResponse(200, { reasonForVisit: null, confirmed: false }),
-      'GET /api/visits/v-1/field-drafts': () => jsonResponse(200, []),
+      'GET /api/visits/v-1/field-drafts': () =>
+        jsonResponse(200, [draft({ field: 'RESIDENCE', value: 'An old draft' })]),
     });
     renderWithQuery(<VoiceFields visitId="v-1" patient={PATIENT} />);
 
-    fireEvent.focus(await screen.findByLabelText('Residence'));
-    fireEvent.focus(screen.getByLabelText('Next of kin name'));
-
-    expect(focusField).toHaveBeenCalledWith('RESIDENCE');
-    expect(focusField).toHaveBeenCalledWith('NEXT_OF_KIN_NAME');
+    expect(await screen.findByLabelText('Residence')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Use voice' })).toHaveLength(1);
+    expect(screen.queryByText('An old draft')).not.toBeInTheDocument();
   });
 
   it('shows a draft greyed with its quote, and saving it goes through the normal form', async () => {
     const calls: string[] = [];
-    const contact: unknown[] = [];
+    const saved: unknown[] = [];
+    const reasonDraft = draft({ field: 'REASON_FOR_VISIT', value: 'Fever', quote: 'nina homa' });
     mockApi({
       'GET /api/visits/v-1/reason': () =>
         jsonResponse(200, { reasonForVisit: null, confirmed: false }),
-      'GET /api/visits/v-1/field-drafts': () => jsonResponse(200, [draft({})]),
-      'PUT /api/patients/p-1/contact': (init) => {
+      'GET /api/visits/v-1/field-drafts': () => jsonResponse(200, [reasonDraft]),
+      'PUT /api/visits/v-1/reason': (init) => {
         calls.push('save');
-        contact.push(bodyOf(init));
-        return jsonResponse(200, { ...PATIENT, residence: 'Kibera, Nairobi' });
+        saved.push(bodyOf(init));
+        return jsonResponse(200, { reasonForVisit: 'Fever', confirmed: false });
       },
       'POST /api/visits/v-1/field-drafts/d-1/confirm': () => {
         calls.push('confirm');
-        return jsonResponse(200, draft({ status: 'CONFIRMED' }));
+        return jsonResponse(200, { ...reasonDraft, status: 'CONFIRMED' });
       },
     });
     renderWithQuery(<VoiceFields visitId="v-1" patient={PATIENT} />);
 
-    expect(await screen.findByText('Kibera, Nairobi')).toBeInTheDocument();
-    expect(screen.getByText(/naishi Kibera hapa Nairobi/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Residence')).toHaveValue('');
+    expect(await screen.findByText('Fever')).toBeInTheDocument();
+    expect(screen.getByText(/nina homa/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Reason for visit')).toHaveValue('');
 
     fireEvent.click(screen.getByRole('button', { name: 'Use this' }));
-    expect(screen.getByLabelText('Residence')).toHaveValue('Kibera, Nairobi');
-    fireEvent.click(screen.getAllByRole('button', { name: 'Save' })[1] as HTMLElement);
+    expect(screen.getByLabelText('Reason for visit')).toHaveValue('Fever');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Save' })[0] as HTMLElement);
 
     await vi.waitFor(() => {
       expect(calls).toEqual(['save', 'confirm']);
     });
-    expect(contact).toEqual([{ residence: 'Kibera, Nairobi', nextOfKinName: '' }]);
+    expect(saved).toEqual([{ reasonForVisit: 'Fever' }]);
   });
 
   it('dismisses a wrong draft', async () => {
@@ -99,7 +98,7 @@ describe('VoiceFields', () => {
       'GET /api/visits/v-1/reason': () =>
         jsonResponse(200, { reasonForVisit: null, confirmed: false }),
       'GET /api/visits/v-1/field-drafts': () =>
-        jsonResponse(200, [draft({ field: 'NEXT_OF_KIN_NAME', value: 'Otieno' })]),
+        jsonResponse(200, [draft({ field: 'REASON_FOR_VISIT', value: 'Fever' })]),
       'POST /api/visits/v-1/field-drafts/d-1/dismiss': () => {
         dismissed.push('d-1');
         return jsonResponse(200, draft({ status: 'DISMISSED' }));

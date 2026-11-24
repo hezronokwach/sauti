@@ -4,6 +4,7 @@ import { apiFetch, errorMessage } from '../../api/client';
 import { ROLE_HOME } from '../auth/roles';
 import { useCurrentStaff } from '../auth/session';
 import { ReasonConfirm } from '../drafts/ReasonConfirm';
+import { ReasonSummary } from '../drafts/ReasonSummary';
 import { VoiceFields } from '../drafts/VoiceFields';
 import { DoctorWorkspace } from '../notes/DoctorWorkspace';
 import type { PatientDetailsResponse } from '../patients/types';
@@ -14,8 +15,8 @@ import { VitalsSummary } from '../triage/VitalsSummary';
 import type { VisitResponse } from './types';
 
 /**
- * One visit: who the patient is, vitals with the allergy list at triage, recording with
- * consent and the live transcript, and for the doctor the note beside the transcript.
+ * One visit: who the patient is, typed vitals and allergies at triage, the reason for visit,
+ * and for the doctor the note beside the consultation recording and its transcript.
  */
 export function VisitPage() {
   const { visitId = '' } = useParams();
@@ -66,7 +67,11 @@ export function VisitPage() {
                 <VitalsSummary visitId={visitId} />
               )}
               <AllergyList patientId={visit.data.patientId} />
-              {staff.role === 'NURSE' ? <ReasonConfirm visitId={visitId} /> : null}
+              {staff.role === 'NURSE' ? (
+                <ReasonConfirm visitId={visitId} />
+              ) : (
+                <ReasonSummary visitId={visitId} />
+              )}
             </div>
           ) : null}
           {staff.role === 'RECEPTIONIST' &&
@@ -83,13 +88,7 @@ export function VisitPage() {
                 language={patient.data.preferredLanguage}
               />
             </div>
-          ) : (
-            <RecordingPanel
-              visitId={visitId}
-              purpose={staff.role === 'RECEPTIONIST' ? 'RECORD_RECEPTION' : 'RECORD_CONSULTATION'}
-              language={patient.data.preferredLanguage}
-            />
-          )}
+          ) : null}
         </>
       ) : (
         !error && <p role="status">Loading...</p>
