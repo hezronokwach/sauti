@@ -77,6 +77,8 @@ describe('ConsentPanel', () => {
       givenBy: 'PARENT_OR_GUARDIAN',
     });
     expect(screen.getByRole('button', { name: 'Patient withdraws consent' })).toBeInTheDocument();
+    // The wording folds away once agreed, and can still be opened.
+    expect(screen.getByText('Show the wording read to the patient')).toBeInTheDocument();
   });
 
   it('records a withdrawal, after which recording is no longer allowed', async () => {

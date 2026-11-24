@@ -12,7 +12,7 @@ interface DoctorVisitProps {
   language: PreferredLanguage;
 }
 
-/** The doctor's working area: the note and prescription beside the consultation recording. */
+/** The doctor's working area: the consultation recording beside the note and prescription. */
 export function DoctorVisit({ visitId, patientId, language }: DoctorVisitProps) {
   const [tab, setTab] = useState<DoctorTab>('note');
   const note = useNote(visitId);
@@ -27,15 +27,17 @@ export function DoctorVisit({ visitId, patientId, language }: DoctorVisitProps) 
     document.getElementById('summarise-transcript')?.focus();
   };
 
+  // Left to right in the order the doctor works: the conversation (consent, recording,
+  // transcript), then the note with its AI suggestions, prescription and history.
   return (
-    <div className="columns">
-      <DoctorWorkspace visitId={visitId} patientId={patientId} tab={tab} onTabChange={setTab} />
+    <div className="consult-layout">
       <RecordingPanel
         visitId={visitId}
         purpose="RECORD_CONSULTATION"
         language={language}
         onGoToSummary={canSummarise ? goToSummary : undefined}
       />
+      <DoctorWorkspace visitId={visitId} patientId={patientId} tab={tab} onTabChange={setTab} />
     </div>
   );
 }

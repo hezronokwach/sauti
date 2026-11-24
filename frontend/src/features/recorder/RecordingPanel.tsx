@@ -16,7 +16,7 @@ interface RecordingPanelProps {
   visitId: string;
   purpose: ConsentPurpose;
   language: PreferredLanguage;
-  /** Moves to the AI summary; left out when the note is already signed. */
+  /** Moves to the AI suggestions in the note; left out when the note is already signed. */
   onGoToSummary?: () => void;
 }
 
@@ -251,10 +251,10 @@ export function RecordingPanel({ visitId, purpose, language, onGoToSummary }: Re
       {!recording && session?.status === 'COMPLETE' && onGoToSummary ? (
         <div className="notice">
           <p>
-            <strong>Next:</strong> check the transcript, then summarise it into your note.
+            <strong>Next:</strong> check the transcript, then ask for suggestions for your note.
           </p>
           <button type="button" onClick={onGoToSummary}>
-            Go to AI summary
+            Go to suggestions
           </button>
         </div>
       ) : null}

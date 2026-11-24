@@ -83,7 +83,7 @@ export function SummaryDrawer({ visitId, onAccept }: SummaryDrawerProps) {
 
   return (
     <section aria-labelledby="summary-heading" className="panel">
-      <h2 id="summary-heading">AI summary</h2>
+      <h2 id="summary-heading">Suggestions from the conversation (AI)</h2>
       <p className="quiet">
         Check each claim against its quote before accepting. The checks catch invented quotes, a
         flipped &quot;no&quot; and wrong numbers, not a wrong meaning.

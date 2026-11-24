@@ -15,6 +15,7 @@ interface ConsentPanelProps {
  * Asking for consent to record. Shows the wording in the patient's language, records who
  * decided and what, and once agreed offers to record the patient's withdrawal. The
  * recorder (issue 25) only starts when {@link isAgreed} says so; the backend checks again.
+ * After agreement the wording folds away to save room on the doctor's screen.
  */
 export function ConsentPanel({ visitId, purpose, language }: ConsentPanelProps) {
   const wording = useConsentWording(language);
@@ -35,9 +36,19 @@ export function ConsentPanel({ visitId, purpose, language }: ConsentPanelProps) 
       ) : null}
       {wording.error ? <p role="alert">{errorMessage(wording.error)}</p> : null}
       {wording.data ? (
-        <blockquote lang={language === 'SWAHILI' ? 'sw' : 'en'} className="consent-text">
-          {wording.data.text}
-        </blockquote>
+        agreed ? (
+          // Once agreed the wording folds away, so the recorder and transcript stay in view.
+          <details className="consent-details">
+            <summary>Show the wording read to the patient</summary>
+            <blockquote lang={language === 'SWAHILI' ? 'sw' : 'en'} className="consent-text">
+              {wording.data.text}
+            </blockquote>
+          </details>
+        ) : (
+          <blockquote lang={language === 'SWAHILI' ? 'sw' : 'en'} className="consent-text">
+            {wording.data.text}
+          </blockquote>
+        )
       ) : null}
 
       <div aria-live="polite">

@@ -98,6 +98,10 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
   return (
     <section aria-labelledby="note-heading">
       <h2 id="note-heading">Note</h2>
+      <p className="quiet">
+        You write the note. Summarise suggests lines from the conversation; each one you accept is
+        added to its section below, where you can still change it.
+      </p>
       <p role="status" className="quiet save-state">
         {SAVE_TEXT[draft.state]}
       </p>
@@ -117,6 +121,7 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
           </button>
         </div>
       ) : null}
+      <SummaryDrawer visitId={visitId} onAccept={acceptFromSummary} />
       {SECTIONS.map(({ name, label }) => (
         <div key={name}>
           <label htmlFor={`note-${name}`}>{label}</label>
@@ -130,7 +135,6 @@ export function NoteEditor({ visitId, initial, onSigned }: NoteEditorProps) {
           />
         </div>
       ))}
-      <SummaryDrawer visitId={visitId} onAccept={acceptFromSummary} />
       {signing ? (
         <form
           className="panel"
