@@ -12,6 +12,7 @@ import { AllergyList } from '../triage/AllergyList';
 import { VitalsForm } from '../triage/VitalsForm';
 import { VitalsSummary } from '../triage/VitalsSummary';
 import { initials } from '../ui/initials';
+import { FinishConsultation } from './FinishConsultation';
 import type { VisitResponse } from './types';
 
 /**
@@ -58,6 +59,9 @@ export function VisitPage() {
               Queue number {visit.data.queueNumber},{' '}
               {visit.data.status.replaceAll('_', ' ').toLowerCase()}
             </span>
+            {staff.role === 'DOCTOR' && visit.data.status === 'WITH_DOCTOR' ? (
+              <FinishConsultation visitId={visitId} />
+            ) : null}
           </div>
           {staff.role === 'NURSE' || staff.role === 'DOCTOR' ? (
             <div className="columns">
