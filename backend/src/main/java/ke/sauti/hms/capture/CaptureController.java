@@ -57,6 +57,16 @@ public class CaptureController {
                 service.start(visitId, request.purpose(), request.languageHint(), actor(staff)));
     }
 
+    /** The doctor's list of this visit's saved consultation recordings. */
+    @GetMapping("/api/visits/{visitId}/captures")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public List<CaptureSessionResponse> consultationRecordings(
+            @PathVariable UUID visitId, @AuthenticationPrincipal AuditActor staff) {
+        return transcripts.consultationRecordings(visitId, actor(staff)).stream()
+                .map(CaptureSessionResponse::of)
+                .toList();
+    }
+
     @PostMapping("/api/captures/{sessionId}/stop")
     public CaptureSessionResponse stop(
             @PathVariable UUID sessionId,

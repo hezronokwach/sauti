@@ -73,6 +73,17 @@ public class TranscriptService {
     }
 
     /**
+     * A visit's consultation recordings that were not erased, oldest first. Only times and
+     * status, so this is not logged; opening one transcript is.
+     */
+    @Transactional(readOnly = true)
+    public List<CaptureSession> consultationRecordings(UUID visitId, VisitService.Actor actor) {
+        accessPolicy.requireVisitAccess(actor, visitId, ClinicalData.TRANSCRIPT, false);
+        return sessions.findByVisitIdAndPurposeAndStatusNotOrderByStartedAtAsc(
+                visitId, ConsentPurpose.RECORD_CONSULTATION, CaptureStatus.ERASED);
+    }
+
+    /**
      * Every line of a visit's consultation recordings that were not erased, in order, for
      * the AI summary. The caller has already checked access and consent.
      */

@@ -192,6 +192,28 @@ class TranscriptPlaybackTest {
     }
 
     @Test
+    void theDoctorCanListSavedRecordingsButNotErasedOnesOrOtherPatients() throws Exception {
+        UUID sessionId = recording();
+        UUID visitId = captures.get(sessionId, actor(recordingDoctor)).getVisitId();
+        String list = "/api/visits/" + visitId + "/captures";
+
+        mvc.perform(get(list).with(as(recordingDoctor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sessionId.toString()));
+        mvc.perform(get(list).with(as(ActingAs.staff(staffRepository, StaffRole.DOCTOR))))
+                .andExpect(status().isForbidden());
+        assertThat(accessLogRows("TRANSCRIPT_OPENED"))
+                .as("listing shows no transcript text")
+                .isZero();
+
+        mvc.perform(post("/api/captures/" + sessionId + "/erase").with(as(recordingDoctor)))
+                .andExpect(status().isOk());
+        mvc.perform(get(list).with(as(recordingDoctor)))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
     void someoneNotLookingAfterThePatientCannotReadOrPlay() throws Exception {
         UUID sessionId = recording();
         Staff doctor = ActingAs.staff(staffRepository, StaffRole.DOCTOR);
