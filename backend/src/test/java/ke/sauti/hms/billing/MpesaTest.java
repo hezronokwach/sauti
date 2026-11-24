@@ -97,6 +97,9 @@ class MpesaTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     @MockitoBean
     private CodeVerifier verifier;
 
@@ -181,8 +184,9 @@ class MpesaTest {
                 visitId);
     }
 
+    /** Safaricom's id as the application reads it; the column itself holds it encrypted. */
     private String checkoutId() {
-        return jdbc.queryForObject("select checkout_request_id from payment where id = ?", String.class, paymentId());
+        return paymentRepository.findById(paymentId()).orElseThrow().getCheckoutRequestId();
     }
 
     private String paymentStatus() {
@@ -248,6 +252,21 @@ class MpesaTest {
 
         pay(UUID.randomUUID().toString()).andExpect(status().isConflict());
         assertThat(gateway.pushes()).isEqualTo(before + 1);
+    }
+
+    @Test
+    void safaricomsIdIsStoredEncrypted() throws Exception {
+        paySuccessfully();
+        String id = checkoutId();
+        assertThat(id).isNotBlank();
+        byte[] stored =
+                jdbc.queryForObject("select checkout_request_id from payment where id = ?", byte[].class, paymentId());
+        assertThat(new String(stored, StandardCharsets.ISO_8859_1)).doesNotContain(id);
+        assertThat(jdbc.queryForObject(
+                        "select checkout_request_hash is not null from payment where id = ?",
+                        Boolean.class,
+                        paymentId()))
+                .isTrue();
     }
 
     @Test

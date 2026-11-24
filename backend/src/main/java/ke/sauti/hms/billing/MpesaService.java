@@ -14,6 +14,7 @@ import ke.sauti.hms.audit.AuditService;
 import ke.sauti.hms.billing.dto.PaymentStatusResponse;
 import ke.sauti.hms.billing.mpesa.MpesaGateway;
 import ke.sauti.hms.billing.mpesa.MpesaRejectedException;
+import ke.sauti.hms.common.crypto.KeyedHasher;
 import ke.sauti.hms.common.error.BusinessRuleException;
 import ke.sauti.hms.common.error.ConflictException;
 import ke.sauti.hms.common.error.NotFoundException;
@@ -60,6 +61,7 @@ public class MpesaService {
     private final JobQueue jobs;
     private final AuditService audit;
     private final JdbcTemplate jdbc;
+    private final KeyedHasher hasher;
     private final Clock clock;
     private final TransactionTemplate transaction;
 
@@ -71,6 +73,7 @@ public class MpesaService {
             JobQueue jobs,
             AuditService audit,
             JdbcTemplate jdbc,
+            KeyedHasher hasher,
             Clock clock,
             PlatformTransactionManager transactionManager) {
         this.payments = payments;
@@ -80,6 +83,7 @@ public class MpesaService {
         this.jobs = jobs;
         this.audit = audit;
         this.jdbc = jdbc;
+        this.hasher = hasher;
         this.clock = clock;
         this.transaction = new TransactionTemplate(transactionManager);
     }
@@ -128,7 +132,7 @@ public class MpesaService {
         try {
             String checkoutId = gateway.stkPush(phone, started.amount(), started.reference());
             transaction.executeWithoutResult(
-                    tx -> requirePayment(started.paymentId()).attachCheckout(checkoutId));
+                    tx -> requirePayment(started.paymentId()).attachCheckout(checkoutId, hasher.hash(checkoutId)));
         } catch (MpesaRejectedException e) {
             log.warn("M-Pesa refused the prompt for payment {}", started.paymentId());
             finishWithoutPaying(started.paymentId(), PaymentStatus.FAILED);
@@ -153,7 +157,7 @@ public class MpesaService {
      * change nothing. An unknown checkout id is ignored.
      */
     public void onCallback(String checkoutId, @Nullable BigDecimal amount, @Nullable String receipt) {
-        transaction.executeWithoutResult(tx -> payments.lockByCheckoutRequestId(checkoutId)
+        transaction.executeWithoutResult(tx -> payments.lockByCheckoutRequestHash(hasher.hash(checkoutId))
                 .filter(payment -> payment.getStatus() == PaymentStatus.PENDING)
                 .ifPresent(payment -> {
                     Instant now = clock.instant();
