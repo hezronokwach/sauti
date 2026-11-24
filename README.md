@@ -69,13 +69,22 @@ flowchart LR
 
 Dotted lines are outside services. Development and tests use fakes for all of them.
 
+In the demo the front end is on Vercel, the backend on Render (`render.yaml`), PostgreSQL on Neon and the encrypted audio in Cloudflare R2. Vercel forwards `/api` to Render, so the browser sees one site.
+
 ## Demo
 
-The demo link will be added here after deployment. Follow [the ten-minute script](docs/demo-script.md). All demo patients are made up.
+**Live demo: https://sauti-gamma.vercel.app.** Follow [the ten-minute script](docs/demo-script.md). All demo patients are made up; never enter real patient information.
+
+- The free Render backend sleeps after about 15 idle minutes. Open the site a minute early; the login page shows "Backend: UP" once it is awake.
+- There are no shared logins. The admin creates each account; its owner sets a password and an authenticator at first login.
+- Speech and summaries use Groq for real, so recorded audio leaves the site. Record only your own voice.
+- M-Pesa uses the fake gateway unless the Render service is switched to the Daraja sandbox (`MPESA_PROVIDER=daraja` with the sandbox keys).
+
+Changes go live in two steps: a pull request into `staging`, then a release pull request from `staging` into `main`. Render and Vercel deploy `main` after every check passes.
 
 ## Evaluation and known weak spots
 
-**No speech accuracy results exist yet.** The evaluation needs real voice recordings, which have not been collected.
+**No speech accuracy results exist yet.** The scripts and the runner are ready ([eval/README.md](eval/README.md)); the 40 voice recordings have not been made.
 
 - AI checks catch unsupported claims but not every wrong meaning, so a clinician must read each summary.
 - The recorder has not been tested with a real microphone across devices.
