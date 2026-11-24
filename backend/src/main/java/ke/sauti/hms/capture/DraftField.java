@@ -1,8 +1,8 @@
 package ke.sauti.hms.capture;
 
 /**
- * Reception's free-text fields that may be drafted from speech. Identity fields (name, date
- * of birth, phone, ID numbers) are never drafted: they are always typed.
+ * Fields drafted from speech. New recordings may only use {@link #REASON_FOR_VISIT}; the other
+ * two remain so drafts already stored can still be read. Identity fields are always typed.
  */
 public enum DraftField {
     REASON_FOR_VISIT,

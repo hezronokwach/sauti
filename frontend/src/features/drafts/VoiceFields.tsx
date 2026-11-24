@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { ApiRequestError, errorMessage } from '../../api/client';
 import type { PatientDetailsResponse } from '../patients/types';
-import { focusField } from '../recorder/activeRecorder';
 import type { DraftField } from '../recorder/pieceStore';
 import { playAt } from '../transcript/playAudio';
 import {
@@ -14,6 +14,7 @@ import {
   useRefreshDrafts,
 } from './api';
 import type { FieldDraftResponse } from './api';
+import { ReasonDictation } from './ReasonDictation';
 
 const LABELS: Record<DraftField, string> = {
   REASON_FOR_VISIT: 'Reason for visit',
@@ -33,10 +34,9 @@ interface VoiceFieldsProps {
 }
 
 /**
- * Reception's free-text fields with voice drafts. While recording, moving to a field starts a
- * new piece tagged with it; a few seconds later a draft may appear under the field, greyed,
- * with the words it came from and a play button. Nothing reaches the record until reception
- * uses the draft (or types) and saves through the normal checks.
+ * Reception's free-text fields. Only the reason for visit can use voice: a short dictation
+ * gives a greyed draft with the words it came from and a play button. Nothing reaches the
+ * record until reception uses the draft (or types) and saves through the normal checks.
  */
 export function VoiceFields({ visitId, patient }: VoiceFieldsProps) {
   const reason = useReason(visitId);
@@ -49,31 +49,24 @@ export function VoiceFields({ visitId, patient }: VoiceFieldsProps) {
     <section aria-labelledby="voice-fields-heading" className="panel">
       <h2 id="voice-fields-heading">Details</h2>
       <p className="quiet">
-        Record while asking: what the patient says on each field is drafted under it. Name, date of
-        birth, phone and ID numbers are always typed.
+        Type these details. Only the reason for visit can be spoken, with the patient&apos;s
+        consent.
       </p>
       <DraftableField
         visitId={visitId}
         field="REASON_FOR_VISIT"
         initial={reason.data.reasonForVisit ?? ''}
         drafts={drafts.data ?? []}
+        voice={<ReasonDictation visitId={visitId} language={patient.preferredLanguage} />}
         save={(value) => saveReason(visitId, value).then(() => undefined)}
       />
-      <ContactFields visitId={visitId} patient={patient} drafts={drafts.data ?? []} />
+      <ContactFields visitId={visitId} patient={patient} />
       {drafts.error ? <p role="alert">{errorMessage(drafts.error)}</p> : null}
     </section>
   );
 }
 
-function ContactFields({
-  visitId,
-  patient,
-  drafts,
-}: {
-  visitId: string;
-  patient: PatientDetailsResponse;
-  drafts: FieldDraftResponse[];
-}) {
+function ContactFields({ visitId, patient }: { visitId: string; patient: PatientDetailsResponse }) {
   // The contact endpoint sets both fields, so each save sends the other's saved value.
   const [saved, setSaved] = useState({
     residence: patient.residence ?? '',
@@ -85,7 +78,7 @@ function ContactFields({
         visitId={visitId}
         field="RESIDENCE"
         initial={saved.residence}
-        drafts={drafts}
+        drafts={[]}
         save={async (value) => {
           await saveContact(patient.id, value, saved.nextOfKinName);
           setSaved((s) => ({ ...s, residence: value }));
@@ -95,7 +88,7 @@ function ContactFields({
         visitId={visitId}
         field="NEXT_OF_KIN_NAME"
         initial={saved.nextOfKinName}
-        drafts={drafts}
+        drafts={[]}
         save={async (value) => {
           await saveContact(patient.id, saved.residence, value);
           setSaved((s) => ({ ...s, nextOfKinName: value }));
@@ -110,10 +103,11 @@ interface DraftableFieldProps {
   field: DraftField;
   initial: string;
   drafts: FieldDraftResponse[];
+  voice?: ReactNode;
   save: (value: string) => Promise<void>;
 }
 
-function DraftableField({ visitId, field, initial, drafts, save }: DraftableFieldProps) {
+function DraftableField({ visitId, field, initial, drafts, voice, save }: DraftableFieldProps) {
   const [value, setValue] = useState(initial);
   const [usedDraft, setUsedDraft] = useState<string | null>(null);
   const [state, setState] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -157,14 +151,12 @@ function DraftableField({ visitId, field, initial, drafts, save }: DraftableFiel
         id={id}
         maxLength={MAX_LENGTH[field]}
         value={value}
-        onFocus={() => {
-          focusField(field);
-        }}
         onChange={(event) => {
           setValue(event.target.value);
           setState('idle');
         }}
       />
+      {voice}
       {draft ? (
         <div className="draft" aria-label={`Voice draft for ${LABELS[field]}`}>
           <p>
