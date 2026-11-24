@@ -25,3 +25,31 @@ export function useRecordVitals(visitId: string) {
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['visits'] }),
   });
 }
+
+/** Either an allergy, or that the patient was asked and has none (backend: RecordAllergyRequest). */
+export type RecordAllergyRequest =
+  { noKnownAllergies: true } | { substance: string; reaction?: string };
+
+export function useRecordAllergy(patientId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: RecordAllergyRequest) =>
+      apiPost<AllergyResponse>(`/api/patients/${patientId}/allergies`, request),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: ['patients', patientId, 'allergies'] }),
+  });
+}
+
+/** What the patient's record says about allergies, in one word, for the banner and warnings. */
+export type AllergyState = 'loading' | 'allergic' | 'none' | 'not-asked';
+
+export function allergyState(entries: AllergyResponse[] | undefined): AllergyState {
+  if (!entries) {
+    return 'loading';
+  }
+  const active = entries.filter((entry) => entry.status === 'ACTIVE');
+  if (active.some((entry) => entry.kind === 'ALLERGY')) {
+    return 'allergic';
+  }
+  return active.length > 0 ? 'none' : 'not-asked';
+}

@@ -1314,3 +1314,116 @@ button.take-next {
   margin: 0.25rem 0 0;
   color: #ffffff;
 }
+
+/* The patient banner: name and number, then the allergy flag under them. */
+.patient-hero-who {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.allergy-flag {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.1875rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.allergy-flag.allergic {
+  background: var(--red);
+  color: #ffffff;
+}
+
+.allergy-flag.none {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.allergy-flag.not-asked {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+/* Triage: reason and allergies on the left, the vitals form on the right. */
+.triage-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  align-items: start;
+}
+
+.triage-layout > * {
+  min-width: 0;
+}
+
+.vitals-grid {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+  margin-bottom: 1rem;
+}
+
+.field-row {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+}
+
+.allergy-form {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.allergy-list {
+  margin: 0;
+  padding-left: 1.125rem;
+  color: var(--red);
+}
+
+/* The doctor's context row: vitals strip, reason and allergies side by side. */
+.doctor-context {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  margin-bottom: 1.25rem;
+}
+
+.doctor-context > section {
+  margin-bottom: 0;
+}
+
+@media (width < 64rem) {
+  .doctor-context {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.vitals-strip {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  margin: 0;
+}
+
+.vitals-strip > div {
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-sm);
+  background: var(--blue-50);
+}
+
+.vitals-strip dt {
+  color: var(--ink-faint);
+  font-size: 0.75rem;
+}
+
+.vitals-strip dd {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}

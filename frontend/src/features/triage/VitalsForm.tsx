@@ -113,27 +113,29 @@ export function VitalsForm({ visitId, onRecorded }: VitalsFormProps) {
           })(event);
         }}
       >
-        {(Object.keys(LABELS) as Field[]).map((name) => {
-          const message = fieldError(name);
-          return (
-            <div key={name}>
-              <label htmlFor={`vitals-${name}`}>{LABELS[name]}</label>
-              <input
-                id={`vitals-${name}`}
-                inputMode={WHOLE.has(name) ? 'numeric' : 'decimal'}
-                autoComplete="off"
-                aria-invalid={message ? true : undefined}
-                aria-describedby={message ? `vitals-${name}-error` : undefined}
-                {...form.register(name)}
-              />
-              {message ? (
-                <p id={`vitals-${name}-error`} className="field-error">
-                  {message}
-                </p>
-              ) : null}
-            </div>
-          );
-        })}
+        <div className="vitals-grid">
+          {(Object.keys(LABELS) as Field[]).map((name) => {
+            const message = fieldError(name);
+            return (
+              <div key={name}>
+                <label htmlFor={`vitals-${name}`}>{LABELS[name]}</label>
+                <input
+                  id={`vitals-${name}`}
+                  inputMode={WHOLE.has(name) ? 'numeric' : 'decimal'}
+                  autoComplete="off"
+                  aria-invalid={message ? true : undefined}
+                  aria-describedby={message ? `vitals-${name}-error` : undefined}
+                  {...form.register(name)}
+                />
+                {message ? (
+                  <p id={`vitals-${name}-error`} className="field-error">
+                    {message}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
         {record.error && serverFieldErrors.length === 0 ? (
           <p role="alert">{errorMessage(record.error)}</p>
         ) : null}

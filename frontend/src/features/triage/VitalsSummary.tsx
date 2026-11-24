@@ -1,7 +1,7 @@
 import { errorMessage } from '../../api/client';
 import { useVisitVitals } from './api';
 
-/** The latest vitals from triage, for the doctor. */
+/** The latest vitals from triage, for the doctor, as one compact strip. */
 export function VitalsSummary({ visitId }: { visitId: string }) {
   const vitals = useVisitVitals(visitId);
 
@@ -17,30 +17,40 @@ export function VitalsSummary({ visitId }: { visitId: string }) {
     <section aria-labelledby="vitals-summary-heading">
       <h2 id="vitals-summary-heading">Vitals</h2>
       {latest ? (
-        <dl>
-          <dt>Temperature</dt>
-          <dd>{latest.temperatureC} °C</dd>
-          <dt>Pulse</dt>
-          <dd>{latest.pulseBpm} a minute</dd>
-          <dt>Breathing rate</dt>
-          <dd>{latest.respiratoryRate} a minute</dd>
-          <dt>Blood pressure</dt>
-          <dd>
-            {latest.systolicMmhg}/{latest.diastolicMmhg} mmHg
-          </dd>
-          <dt>Oxygen saturation</dt>
-          <dd>{latest.spo2Percent}%</dd>
+        <dl className="vitals-strip">
+          <div>
+            <dt>Temperature</dt>
+            <dd>{latest.temperatureC} °C</dd>
+          </div>
+          <div>
+            <dt>Pulse</dt>
+            <dd>{latest.pulseBpm} /min</dd>
+          </div>
+          <div>
+            <dt>Breathing</dt>
+            <dd>{latest.respiratoryRate} /min</dd>
+          </div>
+          <div>
+            <dt>Blood pressure</dt>
+            <dd>
+              {latest.systolicMmhg}/{latest.diastolicMmhg}
+            </dd>
+          </div>
+          <div>
+            <dt>Oxygen</dt>
+            <dd>{latest.spo2Percent}%</dd>
+          </div>
           {latest.weightKg !== null ? (
-            <>
+            <div>
               <dt>Weight</dt>
               <dd>{latest.weightKg} kg</dd>
-            </>
+            </div>
           ) : null}
           {latest.heightCm !== null ? (
-            <>
+            <div>
               <dt>Height</dt>
               <dd>{latest.heightCm} cm</dd>
-            </>
+            </div>
           ) : null}
         </dl>
       ) : (
