@@ -1,0 +1,71 @@
+# Render Blueprint for the demo back end (#52). Values marked sync: false are secrets: Render asks
+# for them when the Blueprint is created (or add them from a .env file on the Environment page),
+# and later syncs of this file never overwrite them. Their names are listed in .env.example.
+services:
+  - type: web
+    name: sauti-backend
+    runtime: docker
+    plan: free
+    # Ohio, next to the Neon database in us-east-2.
+    region: ohio
+    branch: staging
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /actuator/health
+    # Deploy only after every GitHub check on the commit has passed, and only for back-end changes.
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: PORT
+        value: "8080"
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        value: sauti_web
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: FLYWAY_USERNAME
+        sync: false
+      - key: FLYWAY_PASSWORD
+        sync: false
+      - key: APP_ENCRYPTION_KEY
+        sync: false
+      - key: HASH_KEY
+        sync: false
+      - key: FIRST_ADMIN_EMAIL
+        sync: false
+      - key: FIRST_ADMIN_PASSWORD
+        sync: false
+      - key: FIRST_ADMIN_NAME
+        value: Administrator
+      - key: STORAGE_ENDPOINT
+        sync: false
+      - key: STORAGE_BUCKET
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: STORAGE_REGION
+        value: auto
+      - key: GROQ_API_KEY
+        sync: false
+      # fake until the public address exists; then daraja with the callback set to it.
+      - key: MPESA_PROVIDER
+        value: fake
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_CALLBACK_BASE_URL
+        sync: false
+      - key: MPESA_CALLBACK_SECRET
+        sync: false
