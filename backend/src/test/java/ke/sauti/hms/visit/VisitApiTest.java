@@ -137,7 +137,8 @@ class VisitApiTest {
 
     @Test
     void aVisitGoesFromReceptionToDone() throws Exception {
-        String id = open(newPatient());
+        UUID patientId = newPatient();
+        String id = open(patientId);
 
         move(reception, id, "WAITING_TRIAGE").andExpect(status().isOk());
         assertThat(queue("WAITING_TRIAGE")).contains(id);
@@ -145,6 +146,16 @@ class VisitApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_TRIAGE"));
         assertThat(queue("WAITING_TRIAGE")).doesNotContain(id);
+        // Triage cannot end until someone has asked about allergies.
+        move(nurse, id, "WAITING_DOCTOR")
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(
+                                        "Record the patient's allergies, or no known allergies, before sending them to the doctor"));
+        mvc.perform(json(post("/api/patients/" + patientId + "/allergies"), Map.of("noKnownAllergies", true))
+                        .with(as(nurse)))
+                .andExpect(status().is2xxSuccessful());
         move(nurse, id, "WAITING_DOCTOR").andExpect(status().isOk());
         take(doctor, id)
                 .andExpect(status().isOk())

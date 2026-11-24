@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import ke.sauti.hms.TestcontainersConfiguration;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -24,6 +25,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.support.MutableClock;
 import ke.sauti.hms.support.MutableClockConfiguration;
 import ke.sauti.hms.visit.VisitService;
@@ -63,6 +65,9 @@ class WaitingTimeReportTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private QueueTicketService tickets;
@@ -119,6 +124,7 @@ class WaitingTimeReportTest {
         minutes(triageWait);
         visits.take(visitId, actor(nurse));
         minutes(5);
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         minutes(doctorWait);
         visits.take(visitId, actor(doctor));

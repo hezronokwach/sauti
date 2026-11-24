@@ -20,6 +20,7 @@ import ke.sauti.hms.billing.mpesa.MpesaGateway.QueryResult;
 import ke.sauti.hms.billing.mpesa.MpesaRejectedException;
 import ke.sauti.hms.note.NoteService;
 import ke.sauti.hms.note.dto.SaveNoteRequest;
+import ke.sauti.hms.patient.AllergyService;
 import ke.sauti.hms.patient.PatientService;
 import ke.sauti.hms.patient.Sex;
 import ke.sauti.hms.patient.dto.RegisterPatientRequest;
@@ -28,6 +29,7 @@ import ke.sauti.hms.staff.Staff;
 import ke.sauti.hms.staff.StaffRepository;
 import ke.sauti.hms.staff.StaffRole;
 import ke.sauti.hms.support.ActingAs;
+import ke.sauti.hms.support.Allergies;
 import ke.sauti.hms.support.MutableClock;
 import ke.sauti.hms.support.MutableClockConfiguration;
 import ke.sauti.hms.visit.VisitService;
@@ -78,6 +80,9 @@ class MpesaTest {
 
     @Autowired
     private VisitService visits;
+
+    @Autowired
+    private AllergyService allergies;
 
     @Autowired
     private NoteService notes;
@@ -134,6 +139,7 @@ class MpesaTest {
         visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
         visits.take(visitId, actor(nurse));
+        allergies.record(visits.get(visitId).getPatientId(), Allergies.NONE_KNOWN, actor(nurse));
         visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(nurse));
         visits.take(visitId, actor(doctor));
         long version = notes.saveDraft(
