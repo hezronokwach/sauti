@@ -1,0 +1,7 @@
+A: Tell me more about the fever.
+B: Homa inakuja jioni, na ninatetemeka. Imekuwa siku nne.
+A: Any vomiting or diarrhoea?
+B: Sijatapika, hakuna diarrhoea.
+A: The malaria test is positive. I will give you Coartem, four tablets twice a day for three days.
+B: Nikunywe na chakula?
+A: Ndiyo, kunywa baada ya chakula, hasa chakula chenye mafuta kidogo.
