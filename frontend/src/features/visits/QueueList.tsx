@@ -7,7 +7,7 @@ import type { QueueEntryResponse, VisitStatus } from './types';
 
 /** What the button on each row does: take the patient, or move the visit on. */
 export type QueueAction =
-  | { kind: 'take'; label: string }
+  | { kind: 'take'; label: string; onTaken?: (visitId: string) => void }
   | { kind: 'move'; label: string; to: VisitStatus }
   | { kind: 'finish'; label: string }
   | { kind: 'select'; label: string; onSelect: (visitId: string) => void };
@@ -49,7 +49,12 @@ export function QueueList({
       setMessage(taken ? TAKEN : errorMessage(error));
     };
     if (action?.kind === 'take') {
-      take.mutate(entry.visitId, { onError });
+      take.mutate(entry.visitId, {
+        onError,
+        onSuccess: () => {
+          action.onTaken?.(entry.visitId);
+        },
+      });
     } else if (action?.kind === 'move') {
       move.mutate({ visitId: entry.visitId, to: action.to }, { onError });
     } else if (action?.kind === 'finish') {
@@ -60,12 +65,25 @@ export function QueueList({
   };
   const busy = take.isPending || move.isPending || finish.isPending;
   const headingId = `queue-${status}`;
+  const next = action?.kind === 'take' ? queue.data?.[0] : undefined;
 
   return (
     <section aria-labelledby={headingId} className="queue">
       <h2 id={headingId}>
         {title} <span className="count">{queue.data?.length ?? 0}</span>
       </h2>
+      {next ? (
+        <button
+          type="button"
+          className="take-next"
+          disabled={busy}
+          onClick={() => {
+            act(next);
+          }}
+        >
+          Take next patient: {next.patientName}
+        </button>
+      ) : null}
       <div aria-live="polite">{message ? <p role="alert">{message}</p> : null}</div>
       {queue.isPending ? <p role="status">Loading...</p> : null}
       {queue.error ? <p role="alert">{errorMessage(queue.error)}</p> : null}

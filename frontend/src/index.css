@@ -1284,3 +1284,33 @@ main.waiting-area section {
     transition: none !important;
   }
 }
+
+/* One click from the queue to the next patient's form. */
+button.take-next {
+  width: 100%;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+/* Finish consultation sits in the patient banner, on the light side of the dark blue. */
+.patient-hero .finish {
+  position: relative;
+  z-index: 1;
+}
+
+.patient-hero .finish button {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: var(--blue-800);
+}
+
+.patient-hero .finish button:hover:not(:disabled) {
+  border-color: var(--blue-50);
+  background: var(--blue-50);
+  color: var(--blue-800);
+}
+
+.patient-hero .finish [role='alert'] {
+  margin: 0.25rem 0 0;
+  color: #ffffff;
+}

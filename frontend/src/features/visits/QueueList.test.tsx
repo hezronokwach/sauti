@@ -55,6 +55,59 @@ describe('QueueList', () => {
     expect(fetchMock.mock.calls.some(([path]) => path === '/api/visits/visit-1/take')).toBe(true);
   });
 
+  it('opens the patient once taken, and takes the first in line with one button', async () => {
+    const user = userEvent.setup();
+    document.cookie = 'XSRF-TOKEN=t; path=/';
+    const fetchMock = mockApi({
+      'GET /api/visits': () =>
+        jsonResponse(200, [
+          entry(),
+          entry({ visitId: 'visit-2', queueNumber: 8, patientName: 'Baraka Simiyu' }),
+        ]),
+      'POST /api/visits/visit-1/take': () => jsonResponse(200, { id: 'visit-1' }),
+    });
+    const onTaken = vi.fn();
+    renderWithQuery(
+      <QueueList
+        title="Waiting"
+        status="WAITING_TRIAGE"
+        action={{ kind: 'take', label: 'Take', onTaken }}
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Take next patient: Achieng Odhiambo' }),
+    );
+
+    await vi.waitFor(() => {
+      expect(onTaken).toHaveBeenCalledWith('visit-1');
+    });
+    expect(fetchMock.mock.calls.some(([path]) => path === '/api/visits/visit-2/take')).toBe(false);
+  });
+
+  it('does not open a patient someone else took first', async () => {
+    const user = userEvent.setup();
+    document.cookie = 'XSRF-TOKEN=t; path=/';
+    mockApi({
+      'GET /api/visits': () => jsonResponse(200, [entry()]),
+      'POST /api/visits/visit-1/take': () =>
+        jsonResponse(409, apiError('CONFLICT', 'This patient has already been taken')),
+    });
+    const onTaken = vi.fn();
+    renderWithQuery(
+      <QueueList
+        title="Waiting"
+        status="WAITING_TRIAGE"
+        action={{ kind: 'take', label: 'Take', onTaken }}
+      />,
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Take Achieng Odhiambo' }));
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(onTaken).not.toHaveBeenCalled();
+  });
+
   it('says plainly when someone else took the patient first', async () => {
     const user = userEvent.setup();
     document.cookie = 'XSRF-TOKEN=t; path=/';

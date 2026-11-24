@@ -34,6 +34,29 @@ describe('VitalsForm', () => {
     document.cookie = 'XSRF-TOKEN=t; path=/';
   });
 
+  it('reports the save even when the page replaced the form first', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    mockApi({
+      'POST /api/visits/visit-1/vitals': () =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+    });
+    const onRecorded = vi.fn();
+    const user = userEvent.setup({ delay: null });
+    const view = renderWithQuery(<VitalsForm visitId="visit-1" onRecorded={onRecorded} />);
+
+    await fillNormal(user);
+    await user.click(screen.getByRole('button', { name: 'Save and send to doctor' }));
+    // The visit page swaps the form for the summary as soon as the visit moves on.
+    view.unmount();
+    answer(jsonResponse(201, {}));
+
+    await vi.waitFor(() => {
+      expect(onRecorded).toHaveBeenCalled();
+    });
+  });
+
   it('sends plausible readings and reports that the patient went to the doctor', async () => {
     const sent: unknown[] = [];
     mockApi({

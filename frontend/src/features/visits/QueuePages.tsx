@@ -1,18 +1,28 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { InvoicePanel } from '../billing/InvoicePanel';
 import { EmergencyAlerts } from '../queue/EmergencyAlerts';
 import { QueueList } from './QueueList';
 import { QueueStats } from './QueueStats';
 
+/** Taking a patient opens their visit at once: there is nothing else to do with them. */
+function useOpenVisit() {
+  const navigate = useNavigate();
+  return (visitId: string) => {
+    void navigate(`/visits/${visitId}`);
+  };
+}
+
 /**
- * The nurse's screen: take the next patient, then open them to take vitals; saving the
- * vitals sends the patient on to the doctor.
+ * The nurse's screen: take the next patient, which opens their triage form; saving the
+ * vitals sends the patient on to the doctor and comes back here.
  */
 export function TriagePage() {
+  const open = useOpenVisit();
   return (
     <main className="wide">
       <h1>Triage</h1>
-      <p className="page-subtitle">Take the next patient, then record vitals and allergies.</p>
+      <p className="page-subtitle">Take the next patient to open their triage form.</p>
       <EmergencyAlerts />
       <QueueStats
         waiting={{ status: 'WAITING_TRIAGE', label: 'Waiting', icon: 'users' }}
@@ -22,7 +32,7 @@ export function TriagePage() {
         <QueueList
           title="Waiting for triage"
           status="WAITING_TRIAGE"
-          action={{ kind: 'take', label: 'Take' }}
+          action={{ kind: 'take', label: 'Take', onTaken: open }}
         />
         <QueueList title="In triage" status="IN_TRIAGE" emptyText="Nobody in triage." openable />
       </div>
@@ -30,12 +40,13 @@ export function TriagePage() {
   );
 }
 
-/** The doctor's screen: take the next patient, then send them to payment. */
+/** The doctor's screen: take the next patient, which opens the consultation. */
 export function DoctorPage() {
+  const open = useOpenVisit();
   return (
     <main className="wide">
       <h1>Doctor</h1>
-      <p className="page-subtitle">Take the next patient and open their visit.</p>
+      <p className="page-subtitle">Take the next patient to open the consultation.</p>
       <EmergencyAlerts />
       <QueueStats
         waiting={{ status: 'WAITING_DOCTOR', label: 'Waiting', icon: 'users' }}
@@ -45,7 +56,7 @@ export function DoctorPage() {
         <QueueList
           title="Waiting for a doctor"
           status="WAITING_DOCTOR"
-          action={{ kind: 'take', label: 'Take' }}
+          action={{ kind: 'take', label: 'Take', onTaken: open }}
         />
         <QueueList
           title="With a doctor"

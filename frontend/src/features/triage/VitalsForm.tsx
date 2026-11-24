@@ -107,7 +107,9 @@ export function VitalsForm({ visitId, onRecorded }: VitalsFormProps) {
         noValidate
         onSubmit={(event) => {
           void form.handleSubmit((values) => {
-            record.mutate(toRequest(values), { onSuccess: onRecorded });
+            // Awaited rather than an onSuccess callback: saving moves the visit on, which
+            // replaces this form, and a replaced form's callbacks never run.
+            return record.mutateAsync(toRequest(values)).then(onRecorded, () => undefined);
           })(event);
         }}
       >
