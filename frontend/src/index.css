@@ -1266,6 +1266,19 @@ main.waiting-area section {
   }
 }
 
+/* Phones: the avatar alone, so the brand and Log out share one row */
+@media (width < 30rem) {
+  .side-user > div {
+    display: none;
+  }
+
+  .sidebar button.log-out {
+    min-height: 2.25rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
