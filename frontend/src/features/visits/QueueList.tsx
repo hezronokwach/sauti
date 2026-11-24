@@ -64,7 +64,7 @@ export function QueueList({
   return (
     <section aria-labelledby={headingId} className="queue">
       <h2 id={headingId}>
-        {title} <span className="count">({queue.data?.length ?? 0})</span>
+        {title} <span className="count">{queue.data?.length ?? 0}</span>
       </h2>
       <div aria-live="polite">{message ? <p role="alert">{message}</p> : null}</div>
       {queue.isPending ? <p role="status">Loading...</p> : null}

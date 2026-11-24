@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch, errorMessage } from '../../api/client';
+import { StatCard } from '../ui/StatCard';
 
 const REFRESH_MS = 30_000;
 
@@ -45,6 +46,23 @@ export function SystemStatus() {
   return (
     <section aria-labelledby="system-status-heading">
       <h2 id="system-status-heading">System status</h2>
+      <div className="stat-grid">
+        <StatCard
+          featured={!problem}
+          alert={Boolean(problem)}
+          icon="shield"
+          label="Backup"
+          value={problem ? 'Needs attention' : 'Healthy'}
+        />
+        <StatCard icon="clock" label="Jobs waiting" value={jobs.queued} />
+        <StatCard icon="activity" label="Jobs running" value={jobs.running} />
+        <StatCard
+          icon="grid"
+          label="Failed in 24 hours"
+          value={jobs.failedLast24Hours}
+          alert={jobs.failedLast24Hours > 0}
+        />
+      </div>
       <h3>Background jobs</h3>
       {jobs.failedLast24Hours > 0 ? (
         <p role="alert">{jobs.failedLast24Hours} background job(s) failed in the last 24 hours.</p>

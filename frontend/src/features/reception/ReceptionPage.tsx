@@ -6,6 +6,7 @@ import { TicketDesk } from '../queue/TicketDesk';
 import { EligibilityBadge } from '../registry/EligibilityBadge';
 import type { TicketResponse } from '../queue/types';
 import { QueueList } from '../visits/QueueList';
+import { QueueStats } from '../visits/QueueStats';
 import { useChangeVisitStatus, useOpenVisit } from '../visits/api';
 import { PreRegistrationLookup } from './PreRegistrationLookup';
 import type { PreFill } from './PreRegistrationLookup';
@@ -32,6 +33,11 @@ export function ReceptionPage() {
   return (
     <main className="wide">
       <h1>Reception</h1>
+      <p className="page-subtitle">Give tickets, find or register patients, and open visits.</p>
+      <QueueStats
+        waiting={{ status: 'AT_RECEPTION', label: 'At reception', icon: 'desk' }}
+        active={{ status: 'WAITING_TRIAGE', label: 'Sent to triage', icon: 'activity' }}
+      />
       <div className="columns">
         <div>
           <section aria-labelledby="search-heading">

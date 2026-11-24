@@ -11,6 +11,7 @@ import type { PatientDetailsResponse } from '../patients/types';
 import { AllergyList } from '../triage/AllergyList';
 import { VitalsForm } from '../triage/VitalsForm';
 import { VitalsSummary } from '../triage/VitalsSummary';
+import { initials } from '../ui/initials';
 import type { VisitResponse } from './types';
 
 /**
@@ -36,23 +37,28 @@ export function VisitPage() {
   return (
     <main className="wide">
       {staff ? (
-        <p>
+        <p className="back-link">
           <Link to={ROLE_HOME[staff.role]}>Back to the queue</Link>
         </p>
       ) : null}
       {error ? <p role="alert">{errorMessage(error)}</p> : null}
       {patient.data && visit.data && staff ? (
         <>
-          <h1>
-            {patient.data.fullName}{' '}
-            <span className="quiet">
-              {patient.data.patientNumber}, {patient.data.ageYears} years
+          <div className="patient-hero">
+            <span className="avatar" aria-hidden="true">
+              {initials(patient.data.fullName)}
             </span>
-          </h1>
-          <p>
-            Queue number {visit.data.queueNumber},{' '}
-            {visit.data.status.replaceAll('_', ' ').toLowerCase()}
-          </p>
+            <h1>
+              {patient.data.fullName}{' '}
+              <span className="quiet">
+                {patient.data.patientNumber}, {patient.data.ageYears} years
+              </span>
+            </h1>
+            <span className="status-pill">
+              Queue number {visit.data.queueNumber},{' '}
+              {visit.data.status.replaceAll('_', ' ').toLowerCase()}
+            </span>
+          </div>
           {staff.role === 'NURSE' || staff.role === 'DOCTOR' ? (
             <div className="columns">
               {staff.role === 'NURSE' && visit.data.status === 'IN_TRIAGE' ? (

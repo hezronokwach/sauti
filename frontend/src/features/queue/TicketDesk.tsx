@@ -35,7 +35,7 @@ export function TicketDesk({ current, onCurrent }: TicketDeskProps) {
           <button
             key={lane}
             type="button"
-            className={lane === 'EMERGENCY' ? undefined : 'secondary'}
+            className={lane === 'EMERGENCY' ? 'danger' : 'secondary'}
             disabled={issue.isPending}
             onClick={() => {
               issue.mutate(lane);
