@@ -40,6 +40,8 @@ public class Payment extends BaseEntity {
     @Column(name = "checkout_request_id")
     private String checkoutRequestId;
 
+    /** Only the database reads it, through {@link PaymentRepository#lockByCheckoutRequestHash}. */
+    @SuppressWarnings("FieldCanBeLocal")
     @Column(name = "checkout_request_hash")
     private byte[] checkoutRequestHash;
 
