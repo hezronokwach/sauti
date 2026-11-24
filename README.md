@@ -82,3 +82,14 @@ The demo link will be added here after deployment. Follow [the ten-minute script
 - Swahili wording needs review by a fluent speaker.
 - The medicine list and safety rules have not been clinically reviewed. There are no drug interaction checks.
 - This is not ready for real patients. Hosting in Kenya, data agreements, ODPC registration, a data protection impact assessment, a penetration test and certification all come first.
+
+## Testing with real speech locally
+
+Local runs use a fake transcriber that shows the same made-up lines for every recording. To use real speech, add these to the git-ignored `.env` beside `GROQ_API_KEY`, then restart the backend:
+
+```
+TRANSCRIPTION_PROVIDER=groq
+AI_PROVIDER=groq
+```
+
+Recorded audio and transcripts are then sent to Groq. Use only your own voice, never a real patient's. The backend log says which transcriber is active.
