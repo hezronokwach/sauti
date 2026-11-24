@@ -8,11 +8,11 @@ import { ReasonSummary } from '../drafts/ReasonSummary';
 import { VoiceFields } from '../drafts/VoiceFields';
 import { DoctorVisit } from '../notes/DoctorVisit';
 import type { PatientDetailsResponse } from '../patients/types';
-import { AllergyList } from '../triage/AllergyList';
+import { AllergyList, AllergyReminder } from '../triage/AllergyList';
 import { VitalsForm } from '../triage/VitalsForm';
 import { VitalsSummary } from '../triage/VitalsSummary';
-import { initials } from '../ui/initials';
 import { FinishConsultation } from './FinishConsultation';
+import { PatientBanner } from './PatientBanner';
 import type { VisitResponse } from './types';
 
 /**
@@ -45,42 +45,43 @@ export function VisitPage() {
       {error ? <p role="alert">{errorMessage(error)}</p> : null}
       {patient.data && visit.data && staff ? (
         <>
-          <div className="patient-hero">
-            <span className="avatar" aria-hidden="true">
-              {initials(patient.data.fullName)}
-            </span>
-            <h1>
-              {patient.data.fullName}{' '}
-              <span className="quiet">
-                {patient.data.patientNumber}, {patient.data.ageYears} years
-              </span>
-            </h1>
-            <span className="status-pill">
-              Queue number {visit.data.queueNumber},{' '}
-              {visit.data.status.replaceAll('_', ' ').toLowerCase()}
-            </span>
-            {staff.role === 'DOCTOR' && visit.data.status === 'WITH_DOCTOR' ? (
-              <FinishConsultation visitId={visitId} />
-            ) : null}
-          </div>
-          {staff.role === 'NURSE' || staff.role === 'DOCTOR' ? (
-            <div className="columns">
-              {staff.role === 'NURSE' && visit.data.status === 'IN_TRIAGE' ? (
-                <VitalsForm
-                  visitId={visitId}
-                  onRecorded={() => {
-                    void navigate(ROLE_HOME[staff.role]);
-                  }}
-                />
+          <PatientBanner
+            patient={patient.data}
+            visit={visit.data}
+            showAllergies={staff.role === 'NURSE' || staff.role === 'DOCTOR'}
+            action={
+              staff.role === 'DOCTOR' && visit.data.status === 'WITH_DOCTOR' ? (
+                <FinishConsultation visitId={visitId} />
+              ) : undefined
+            }
+          />
+          {staff.role === 'NURSE' ? (
+            // Triage in the order the nurse works: the reason, allergies, then vitals.
+            <div className="triage-layout">
+              <div>
+                <ReasonConfirm visitId={visitId} />
+                <AllergyList patientId={visit.data.patientId} editable />
+              </div>
+              {visit.data.status === 'IN_TRIAGE' ? (
+                <div>
+                  <AllergyReminder patientId={visit.data.patientId} />
+                  <VitalsForm
+                    visitId={visitId}
+                    onRecorded={() => {
+                      void navigate(ROLE_HOME[staff.role]);
+                    }}
+                  />
+                </div>
               ) : (
                 <VitalsSummary visitId={visitId} />
               )}
-              <AllergyList patientId={visit.data.patientId} />
-              {staff.role === 'NURSE' ? (
-                <ReasonConfirm visitId={visitId} />
-              ) : (
-                <ReasonSummary visitId={visitId} />
-              )}
+            </div>
+          ) : null}
+          {staff.role === 'DOCTOR' ? (
+            <div className="doctor-context">
+              <VitalsSummary visitId={visitId} />
+              <ReasonSummary visitId={visitId} />
+              <AllergyList patientId={visit.data.patientId} editable />
             </div>
           ) : null}
           {staff.role === 'RECEPTIONIST' &&
