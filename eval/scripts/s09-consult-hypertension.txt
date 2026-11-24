@@ -1,0 +1,7 @@
+A: Your blood pressure today is one sixty over one hundred.
+B: Nimekuwa nikikunywa amlodipine five milligrams kila asubuhi.
+A: Have you missed any doses?
+B: Sijakosa hata siku moja, lakini bado natumia chumvi nyingi.
+A: We will increase amlodipine to ten milligrams once daily, and please reduce salt.
+B: Nirudi lini?
+A: Come back after two weeks.

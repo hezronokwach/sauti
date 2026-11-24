@@ -1,0 +1,5 @@
+A: Before I prescribe, do you have any allergies to medicine?
+B: Ndiyo, penicillin inanipa rashes mwili mzima.
+A: Okay, so no amoxicillin and no Augmentin for you.
+B: Sawa. Nilipewa amoxicillin mwaka jana na nikavimba.
+A: I will give you azithromycin instead, five hundred milligrams once a day for three days.

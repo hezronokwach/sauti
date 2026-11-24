@@ -1,0 +1,5 @@
+A: You have typhoid symptoms, but the test result is still pending.
+B: Nimekuwa na homa kwa wiki moja na tumbo linasumbua.
+A: We will start ciprofloxacin five hundred milligrams twice a day for seven days.
+B: Naweza kunywa na maziwa?
+A: Usinywe na maziwa. Leave two hours between milk and the tablet.
