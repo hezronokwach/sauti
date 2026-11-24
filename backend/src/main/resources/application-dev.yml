@@ -27,12 +27,15 @@ sauti:
   ai:
     provider: ${AI_PROVIDER:fake}
   storage:
-    # SeaweedFS from compose.yaml; it runs without S3 authentication locally.
-    endpoint: http://localhost:8333
-    access-key: local-dev
-    secret-key: local-dev # gitleaks:allow
-    region: us-east-1
-    create-bucket: true
+    # SeaweedFS from compose.yaml by default; it runs without S3 authentication locally.
+    # To try Cloudflare R2, set the STORAGE_ values in .env, use a test bucket made in the
+    # Cloudflare dashboard, and set STORAGE_CREATE_BUCKET=false.
+    endpoint: ${STORAGE_ENDPOINT:http://localhost:8333}
+    bucket: ${STORAGE_BUCKET:sauti-audio}
+    access-key: ${STORAGE_ACCESS_KEY:local-dev}
+    secret-key: ${STORAGE_SECRET_KEY:local-dev} # gitleaks:allow
+    region: ${STORAGE_REGION:us-east-1}
+    create-bucket: ${STORAGE_CREATE_BUCKET:true}
   first-admin:
     # Local only, not secret: a fresh local database gets this admin. Change the
     # password at first login like any account; it is never used outside dev.
