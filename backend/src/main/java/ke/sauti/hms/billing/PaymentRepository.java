@@ -28,6 +28,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Optional<Payment> lockById(UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select p from Payment p where p.checkoutRequestId = ?1")
-    Optional<Payment> lockByCheckoutRequestId(String checkoutRequestId);
+    @Query("select p from Payment p where p.checkoutRequestHash = ?1")
+    Optional<Payment> lockByCheckoutRequestHash(byte[] checkoutRequestHash);
 }

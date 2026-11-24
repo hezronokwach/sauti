@@ -35,8 +35,15 @@ public class Payment extends BaseEntity {
     @Column(name = "idempotency_key", nullable = false, updatable = false)
     private String idempotencyKey;
 
+    /** Safaricom's id ends with the payer's phone number, so it is encrypted; the hash finds callbacks. */
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(name = "checkout_request_id")
     private String checkoutRequestId;
+
+    /** Only the database reads it, through {@link PaymentRepository#lockByCheckoutRequestHash}. */
+    @SuppressWarnings("FieldCanBeLocal")
+    @Column(name = "checkout_request_hash")
+    private byte[] checkoutRequestHash;
 
     @Column(name = "mpesa_receipt")
     private String mpesaReceipt;
@@ -92,8 +99,10 @@ public class Payment extends BaseEntity {
         this.promptedAt = at;
     }
 
-    void attachCheckout(String checkoutId) {
+    /** Sets Safaricom's id and its lookup hash together. */
+    void attachCheckout(String checkoutId, byte[] hash) {
         this.checkoutRequestId = checkoutId;
+        this.checkoutRequestHash = hash.clone();
     }
 
     /** Keeps the first callback's claims. They count only once the status query confirms. */
