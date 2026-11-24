@@ -56,11 +56,14 @@ export function RecordingPanel({ visitId, purpose, language, onGoToSummary }: Re
 
   const start = async () => {
     setError(null);
+    // Only the session this attempt opens; an earlier recording is never touched here.
+    let opened: string | null = null;
     try {
       const session = await apiPost<CaptureSessionResponse>(`/api/visits/${visitId}/captures`, {
         purpose,
         languageHint: language === 'SWAHILI' ? 'sw' : 'en',
       });
+      opened = session.id;
       sessionId.current = session.id;
       setSession({ id: session.id, status: 'RECORDING' });
       setConfirmErase(false);
@@ -74,6 +77,14 @@ export function RecordingPanel({ visitId, purpose, language, onGoToSummary }: Re
       );
       recorder.current = null;
       setStatus({ state: 'idle', elapsedMs: 0, level: 0 });
+      // The session opened before the microphone failed holds no audio. Left open, the
+      // server would refuse every later Record for this visit, so it is closed here.
+      if (opened) {
+        sessionId.current = null;
+        setSession(null);
+        await apiPost(`/api/captures/${opened}/erase`).catch(() => undefined);
+        await refreshRecordings();
+      }
     }
   };
 
