@@ -6,9 +6,8 @@ import { useCurrentStaff } from '../auth/session';
 import { ReasonConfirm } from '../drafts/ReasonConfirm';
 import { ReasonSummary } from '../drafts/ReasonSummary';
 import { VoiceFields } from '../drafts/VoiceFields';
-import { DoctorWorkspace } from '../notes/DoctorWorkspace';
+import { DoctorVisit } from '../notes/DoctorVisit';
 import type { PatientDetailsResponse } from '../patients/types';
-import { RecordingPanel } from '../recorder/RecordingPanel';
 import { AllergyList } from '../triage/AllergyList';
 import { VitalsForm } from '../triage/VitalsForm';
 import { VitalsSummary } from '../triage/VitalsSummary';
@@ -80,14 +79,11 @@ export function VisitPage() {
             <VoiceFields visitId={visitId} patient={patient.data} />
           ) : null}
           {staff.role === 'DOCTOR' ? (
-            <div className="columns">
-              <DoctorWorkspace visitId={visitId} patientId={visit.data.patientId} />
-              <RecordingPanel
-                visitId={visitId}
-                purpose="RECORD_CONSULTATION"
-                language={patient.data.preferredLanguage}
-              />
-            </div>
+            <DoctorVisit
+              visitId={visitId}
+              patientId={visit.data.patientId}
+              language={patient.data.preferredLanguage}
+            />
           ) : null}
         </>
       ) : (

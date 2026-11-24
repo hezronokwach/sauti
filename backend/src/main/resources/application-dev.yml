@@ -3,6 +3,9 @@
 # Outside services (transcription, AI, registry, payments) use fake adapters in
 # this profile; each adapter's switch is added here when the adapter is built.
 spring:
+  config:
+    # Local keys and switches from the git-ignored .env, run from backend/ or the repository root.
+    import: optional:file:../.env[.properties],optional:file:.env[.properties]
   docker:
     compose:
       lifecycle-management: start-only
@@ -17,6 +20,12 @@ logging:
     ke.sauti.hms: debug
 
 sauti:
+  # fake by default. Set both to groq in .env to test with real speech: audio then leaves
+  # this computer, so use only your own voice and never a real patient's.
+  transcription:
+    provider: ${TRANSCRIPTION_PROVIDER:fake}
+  ai:
+    provider: ${AI_PROVIDER:fake}
   storage:
     # SeaweedFS from compose.yaml; it runs without S3 authentication locally.
     endpoint: http://localhost:8333

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { playAt } from './playAudio';
 import { useTranscript } from './useTranscript';
 import type { TranscriptSegmentResponse } from './useTranscript';
@@ -22,6 +22,7 @@ function timestamp(ms: number): string {
 export function TranscriptPanel({ sessionId, live }: TranscriptPanelProps) {
   const { segments, erased, error } = useTranscript(sessionId, live);
   const [playError, setPlayError] = useState<string | null>(null);
+  const headingId = useId();
 
   const play = async (segment: TranscriptSegmentResponse) => {
     setPlayError(null);
@@ -30,16 +31,16 @@ export function TranscriptPanel({ sessionId, live }: TranscriptPanelProps) {
 
   if (erased) {
     return (
-      <section aria-labelledby="transcript-heading" className="panel">
-        <h2 id="transcript-heading">Transcript</h2>
+      <section aria-labelledby={headingId} className="panel">
+        <h2 id={headingId}>Transcript</h2>
         <p role="status">This recording was erased.</p>
       </section>
     );
   }
 
   return (
-    <section aria-labelledby="transcript-heading" className="panel">
-      <h2 id="transcript-heading">Transcript</h2>
+    <section aria-labelledby={headingId} className="panel">
+      <h2 id={headingId}>Transcript</h2>
       <div aria-live="polite">
         {error ? <p role="alert">{error}</p> : null}
         {playError ? <p role="alert">{playError}</p> : null}

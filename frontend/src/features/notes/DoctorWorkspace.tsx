@@ -8,11 +8,17 @@ import { PatientHistory } from './PatientHistory';
 import { SignedNote } from './SignedNote';
 import type { NoteResponse } from './types';
 
-type Tab = 'note' | 'prescription' | 'history';
+export type DoctorTab = 'note' | 'prescription' | 'history';
+
+interface DoctorWorkspaceProps {
+  visitId: string;
+  patientId: string;
+  tab: DoctorTab;
+  onTabChange: (tab: DoctorTab) => void;
+}
 
 /** The doctor's side of the visit page: this visit's note, or the patient's history. */
-export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patientId: string }) {
-  const [tab, setTab] = useState<Tab>('note');
+export function DoctorWorkspace({ visitId, patientId, tab, onTabChange }: DoctorWorkspaceProps) {
   // Loaded on first opening (each read is access-logged), then kept so a half-typed line survives.
   const [prescriptionOpened, setPrescriptionOpened] = useState(false);
   const note = useNote(visitId);
@@ -30,7 +36,7 @@ export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patie
           aria-selected={tab === 'note'}
           className={tab === 'note' ? undefined : 'secondary'}
           onClick={() => {
-            setTab('note');
+            onTabChange('note');
           }}
         >
           This visit
@@ -42,7 +48,7 @@ export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patie
           className={tab === 'prescription' ? undefined : 'secondary'}
           onClick={() => {
             setPrescriptionOpened(true);
-            setTab('prescription');
+            onTabChange('prescription');
           }}
         >
           Prescription
@@ -53,7 +59,7 @@ export function DoctorWorkspace({ visitId, patientId }: { visitId: string; patie
           aria-selected={tab === 'history'}
           className={tab === 'history' ? undefined : 'secondary'}
           onClick={() => {
-            setTab('history');
+            onTabChange('history');
           }}
         >
           History

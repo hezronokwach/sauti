@@ -89,6 +89,7 @@ export function SummaryDrawer({ visitId, onAccept }: SummaryDrawerProps) {
         flipped &quot;no&quot; and wrong numbers, not a wrong meaning.
       </p>
       <button
+        id="summarise-transcript"
         type="button"
         disabled={busy}
         onClick={() => {

@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import ke.sauti.hms.jobs.JobFailure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.io.ByteArrayResource;
@@ -39,6 +41,8 @@ public class GroqSpeechToText implements SpeechToText {
 
     static final Duration DEFAULT_RETRY_AFTER = Duration.ofSeconds(20);
 
+    private static final Logger log = LoggerFactory.getLogger(GroqSpeechToText.class);
+
     private final RestClient client;
     private final String model;
 
@@ -55,6 +59,7 @@ public class GroqSpeechToText implements SpeechToText {
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.apiKey())
                 .build();
         this.model = properties.model();
+        log.info("Transcription uses Groq: recorded audio is sent to this outside service");
     }
 
     @Override
