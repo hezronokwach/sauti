@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { errorMessage } from '../../api/client';
 import { MIN_QUERY, usePatientSearch } from '../patients/api';
 import type { PatientSummaryResponse } from '../patients/types';
@@ -38,8 +38,10 @@ export function ReceptionPage() {
         waiting={{ status: 'AT_RECEPTION', label: 'At reception', icon: 'desk' }}
         active={{ status: 'WAITING_TRIAGE', label: 'Sent to triage', icon: 'activity' }}
       />
-      <div className="columns">
+      {/* The desk's order of work: call the ticket, find or register, open the visit. */}
+      <div className="reception-layout">
         <div>
+          <TicketDesk current={ticket} onCurrent={setTicket} />
           <section aria-labelledby="search-heading">
             <h2 id="search-heading">Find a patient</h2>
             <label htmlFor="patient-search">Name, phone, national ID or SH number</label>
@@ -122,7 +124,6 @@ export function ReceptionPage() {
         </div>
 
         <div>
-          <TicketDesk current={ticket} onCurrent={setTicket} />
           <QueueList
             title="At reception"
             status="AT_RECEPTION"
@@ -176,8 +177,14 @@ function OpenVisitPanel({ patient, ticket, initialReason, onOpened, onDone }: Op
     );
   };
 
+  // The panel appears under the search; bring it into view so the next step is on screen.
+  const panel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    panel.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [patient.id]);
+
   return (
-    <section aria-labelledby="open-visit-heading" className="panel">
+    <section ref={panel} aria-labelledby="open-visit-heading" className="panel">
       <h2 id="open-visit-heading">Open a visit</h2>
       <p>
         <strong>{patient.fullName}</strong> {patient.patientNumber}, {patient.ageYears} years
