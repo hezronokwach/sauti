@@ -85,13 +85,13 @@ class TranscriptPlaybackTest {
     private JdbcTemplate jdbc;
 
     private Staff reception;
-    private Staff nurse;
+    private Staff recordingDoctor;
 
     @BeforeEach
     void setUp() {
         jdbc.update("update job set status = 'CANCELLED' where status = 'QUEUED'");
         reception = ActingAs.staff(staffRepository, StaffRole.RECEPTIONIST);
-        nurse = ActingAs.staff(staffRepository, StaffRole.NURSE);
+        recordingDoctor = ActingAs.staff(staffRepository, StaffRole.DOCTOR);
     }
 
     private static VisitService.Actor actor(Staff staff) {
@@ -115,14 +115,17 @@ class TranscriptPlaybackTest {
                 .getId();
         UUID visitId = visits.open(patientId, null, actor(reception)).getId();
         visits.changeStatus(visitId, VisitStatus.WAITING_TRIAGE, null, actor(reception));
-        visits.take(visitId, actor(nurse));
+        Staff triageNurse = ActingAs.staff(staffRepository, StaffRole.NURSE);
+        visits.take(visitId, actor(triageNurse));
+        visits.changeStatus(visitId, VisitStatus.WAITING_DOCTOR, null, actor(triageNurse));
+        visits.take(visitId, actor(recordingDoctor));
         consents.record(
                 visitId,
                 ConsentPurpose.RECORD_CONSULTATION,
                 ConsentDecision.AGREED,
                 ConsentGivenBy.PATIENT,
-                actor(nurse));
-        return captures.start(visitId, ConsentPurpose.RECORD_CONSULTATION, "sw", actor(nurse))
+                actor(recordingDoctor));
+        return captures.start(visitId, ConsentPurpose.RECORD_CONSULTATION, "sw", actor(recordingDoctor))
                 .getId();
     }
 
@@ -138,11 +141,11 @@ class TranscriptPlaybackTest {
                 .header("X-Piece-Duration-Ms", "30000")
                 .header("X-Piece-Offset-Ms", String.valueOf(sequence * 30_000))
                 .content(audio)
-                .with(as(nurse)));
+                .with(as(recordingDoctor)));
     }
 
     private List<JsonNode> segments(UUID sessionId, Integer after) throws Exception {
-        var request = get("/api/captures/" + sessionId + "/segments").with(as(nurse));
+        var request = get("/api/captures/" + sessionId + "/segments").with(as(recordingDoctor));
         if (after != null) {
             request.param("after", String.valueOf(after));
         }
@@ -157,7 +160,10 @@ class TranscriptPlaybackTest {
 
     private long accessLogRows(String what) {
         Long rows = jdbc.queryForObject(
-                "select count(*) from access_log where actor_id = ? and what = ?", Long.class, nurse.getId(), what);
+                "select count(*) from access_log where actor_id = ? and what = ?",
+                Long.class,
+                recordingDoctor.getId(),
+                what);
         return rows == null ? 0 : rows;
     }
 
@@ -186,6 +192,28 @@ class TranscriptPlaybackTest {
     }
 
     @Test
+    void theDoctorCanListSavedRecordingsButNotErasedOnesOrOtherPatients() throws Exception {
+        UUID sessionId = recording();
+        UUID visitId = captures.get(sessionId, actor(recordingDoctor)).getVisitId();
+        String list = "/api/visits/" + visitId + "/captures";
+
+        mvc.perform(get(list).with(as(recordingDoctor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sessionId.toString()));
+        mvc.perform(get(list).with(as(ActingAs.staff(staffRepository, StaffRole.DOCTOR))))
+                .andExpect(status().isForbidden());
+        assertThat(accessLogRows("TRANSCRIPT_OPENED"))
+                .as("listing shows no transcript text")
+                .isZero();
+
+        mvc.perform(post("/api/captures/" + sessionId + "/erase").with(as(recordingDoctor)))
+                .andExpect(status().isOk());
+        mvc.perform(get(list).with(as(recordingDoctor)))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
     void someoneNotLookingAfterThePatientCannotReadOrPlay() throws Exception {
         UUID sessionId = recording();
         Staff doctor = ActingAs.staff(staffRepository, StaffRole.DOCTOR);
@@ -206,7 +234,7 @@ class TranscriptPlaybackTest {
 
         mvc.perform(get("/api/captures/" + sessionId + "/audio")
                         .param("atMs", "31000")
-                        .with(as(nurse)))
+                        .with(as(recordingDoctor)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("audio/ogg"))
                 .andExpect(content().bytes(audio(1)))
@@ -214,7 +242,7 @@ class TranscriptPlaybackTest {
                 .andExpect(header().string("X-Piece-Offset-Ms", "30000"));
         mvc.perform(get("/api/captures/" + sessionId + "/audio")
                         .param("atMs", "90000")
-                        .with(as(nurse)))
+                        .with(as(recordingDoctor)))
                 .andExpect(status().isNotFound());
 
         assertThat(accessLogRows("AUDIO_PLAYED"))
@@ -235,7 +263,7 @@ class TranscriptPlaybackTest {
         UUID queuedPiece = jdbc.queryForObject(
                 "select id from audio_piece where session_id = ? and sequence_no = 1", UUID.class, sessionId);
 
-        mvc.perform(post("/api/captures/" + sessionId + "/erase").with(as(nurse)))
+        mvc.perform(post("/api/captures/" + sessionId + "/erase").with(as(recordingDoctor)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ERASED"));
 
@@ -249,7 +277,7 @@ class TranscriptPlaybackTest {
                 .isEqualTo("CANCELLED");
         assertThatThrownBy(() -> store.get(key)).isInstanceOf(NoSuchKeyException.class);
         upload(sessionId, 2).andExpect(status().isGone());
-        mvc.perform(get("/api/captures/" + sessionId + "/segments").with(as(nurse)))
+        mvc.perform(get("/api/captures/" + sessionId + "/segments").with(as(recordingDoctor)))
                 .andExpect(status().isGone());
         String detail = jdbc.queryForObject(
                 "select detail::text from audit_event where action = 'CAPTURE_ERASED' and entity_id = ?",

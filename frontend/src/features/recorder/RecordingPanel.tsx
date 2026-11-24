@@ -5,9 +5,10 @@ import { isAgreed, useConsentHistory } from '../consent/api';
 import { ConsentPanel } from '../consent/ConsentPanel';
 import type { PreferredLanguage } from '../patients/types';
 import { TranscriptPanel } from '../transcript/TranscriptPanel';
-import { setActiveRecorder } from './activeRecorder';
 import { onUploadStatus, uploader } from './background';
 import { Recorder } from './recorder';
+import { useRefreshRecordings } from './recordingsApi';
+import { SavedRecordings } from './SavedRecordings';
 import type { RecorderStatus } from './recorder';
 import type { UploadStatus } from './uploader';
 
@@ -15,6 +16,8 @@ interface RecordingPanelProps {
   visitId: string;
   purpose: ConsentPurpose;
   language: PreferredLanguage;
+  /** Moves to the AI summary; left out when the note is already signed. */
+  onGoToSummary?: () => void;
 }
 
 interface CaptureSessionResponse {
@@ -32,7 +35,8 @@ function clock(ms: number): string {
  * Pieces wait on the device until the server has them, so a dropped connection or a
  * closed tab loses nothing.
  */
-export function RecordingPanel({ visitId, purpose, language }: RecordingPanelProps) {
+export function RecordingPanel({ visitId, purpose, language, onGoToSummary }: RecordingPanelProps) {
+  const refreshRecordings = useRefreshRecordings(visitId);
   const history = useConsentHistory(visitId);
   const agreed = isAgreed(history.data, purpose);
   const recorder = useRef<Recorder | null>(null);
@@ -62,7 +66,6 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
       setConfirmErase(false);
       recorder.current = new Recorder(session.id, uploader, setStatus);
       await recorder.current.start();
-      setActiveRecorder(recorder.current);
     } catch (cause) {
       setError(
         cause instanceof DOMException
@@ -70,7 +73,6 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
           : errorMessage(cause),
       );
       recorder.current = null;
-      setActiveRecorder(null);
       setStatus({ state: 'idle', elapsedMs: 0, level: 0 });
     }
   };
@@ -79,7 +81,6 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
     const active = recorder.current;
     const id = sessionId.current;
     recorder.current = null;
-    setActiveRecorder(null);
     if (!active || !id) {
       return;
     }
@@ -89,6 +90,7 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
         expectedPieces,
       });
       setSession({ id, status: stopped.status });
+      await refreshRecordings();
     } catch (cause) {
       setError(errorMessage(cause));
     }
@@ -106,6 +108,7 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
       await apiPost(`/api/captures/${id}/erase`);
       setSession({ id, status: 'ERASED' });
       setConfirmErase(false);
+      await refreshRecordings();
     } catch (cause) {
       setError(errorMessage(cause));
     }
@@ -229,6 +232,22 @@ export function RecordingPanel({ visitId, purpose, language }: RecordingPanelPro
           live={recording || session.status === 'RECORDING' || session.status === 'STOPPED'}
         />
       ) : null}
+      {!recording && session?.status === 'STOPPED' ? (
+        <p role="status" className="notice">
+          Finishing the transcript. The next step appears here when it is ready.
+        </p>
+      ) : null}
+      {!recording && session?.status === 'COMPLETE' && onGoToSummary ? (
+        <div className="notice">
+          <p>
+            <strong>Next:</strong> check the transcript, then summarise it into your note.
+          </p>
+          <button type="button" onClick={onGoToSummary}>
+            Go to AI summary
+          </button>
+        </div>
+      ) : null}
+      <SavedRecordings visitId={visitId} currentSessionId={session?.id ?? null} />
     </div>
   );
 }

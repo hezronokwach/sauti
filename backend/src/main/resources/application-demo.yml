@@ -8,12 +8,18 @@ spring:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
+  # Migrations run as the owner; the app logs in with only the rights it needs.
+  flyway:
+    user: ${FLYWAY_USERNAME}
+    password: ${FLYWAY_PASSWORD}
 
 sauti:
   required-env:
     - DATABASE_URL
     - DATABASE_USERNAME
     - DATABASE_PASSWORD
+    - FLYWAY_USERNAME
+    - FLYWAY_PASSWORD
     - APP_ENCRYPTION_KEY
     - HASH_KEY
     - STORAGE_ENDPOINT
@@ -25,3 +31,6 @@ sauti:
     provider: groq
   ai:
     provider: groq
+  demo:
+    # Adds the fake registry's made-up patients at start. Only this profile sets it.
+    seed: true

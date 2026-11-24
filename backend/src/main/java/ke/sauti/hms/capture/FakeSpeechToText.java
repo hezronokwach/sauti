@@ -1,6 +1,7 @@
 package ke.sauti.hms.capture;
 
 import java.util.List;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,11 @@ public class FakeSpeechToText implements SpeechToText {
             new Segment("Nimemeza paracetamol mara mbili.", 10_100, 12_500, -0.30, 0.04, 1.3),
             new Segment("Kichwa kinauma upande wa kushoto.", 12_500, 15_000, -0.92, 0.10, 1.2),
             new Segment("Nina kizunguzungu kidogo asubuhi.", 15_000, 17_600, -0.62, 0.08, 1.2));
+
+    public FakeSpeechToText() {
+        LoggerFactory.getLogger(FakeSpeechToText.class)
+                .info("Transcription is fake: every recording shows the same made-up lines");
+    }
 
     @Override
     public List<Segment> transcribe(byte[] audio, String mimeType, String languageHint, String prompt) {

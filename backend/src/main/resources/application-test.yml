@@ -16,6 +16,9 @@ sauti:
     access-key: test
     secret-key: test # gitleaks:allow
     region: us-east-1
+  rate-limit:
+    # Tests make many requests from one address; RateLimitTest turns this on.
+    enabled: false
   jobs:
     # Tests run the worker step by step.
     enabled: false

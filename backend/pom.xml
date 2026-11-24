@@ -87,6 +87,16 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
         <dependency>
+            <!-- Request limits; Caffeine keeps the buckets in a bounded cache. -->
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.23.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
             <!-- S3 client for encrypted audio pieces (SeaweedFS locally, R2 in the demo).
                  Synchronous only, so the Netty async client is left out. -->
             <groupId>software.amazon.awssdk</groupId>

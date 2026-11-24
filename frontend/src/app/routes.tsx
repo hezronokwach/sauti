@@ -6,6 +6,7 @@ import { RequireLogin } from '../features/auth/RequireLogin';
 import { ROLE_HOME } from '../features/auth/roles';
 import { SignedInLayout } from '../features/auth/SignedInLayout';
 import type { StaffRole } from '../features/auth/types';
+import { DemoBanner } from '../features/system/DemoBanner';
 import { PreRegisterPage } from '../features/prereg/PreRegisterPage';
 import { WaitingAreaPage } from '../features/queue/WaitingAreaPage';
 import { ReceptionPage } from '../features/reception/ReceptionPage';
@@ -25,36 +26,41 @@ function page(
 
 /** Every page of the app. Shared by the browser router and by tests. */
 export const routes: RouteObject[] = [
-  { path: '/', element: <RootRedirect /> },
-  { path: '/login', element: <LoginPage /> },
-  // The waiting-area screen: no login, ticket codes only.
-  { path: '/waiting-area', element: <WaitingAreaPage /> },
-  // Reached by QR code: saves only, answers with a ticket code.
-  { path: '/pre-register', element: <PreRegisterPage /> },
   {
-    element: <RequireLogin forPasswordChange />,
+    element: <DemoBanner />,
     children: [
+      { path: '/', element: <RootRedirect /> },
+      { path: '/login', element: <LoginPage /> },
+      // The waiting-area screen: no login, ticket codes only.
+      { path: '/waiting-area', element: <WaitingAreaPage /> },
+      // Reached by QR code: saves only, answers with a ticket code.
+      { path: '/pre-register', element: <PreRegisterPage /> },
       {
-        element: <SignedInLayout />,
-        children: [{ path: '/change-password', element: <ChangePasswordPage /> }],
-      },
-    ],
-  },
-  {
-    element: <RequireLogin />,
-    children: [
-      {
-        element: <SignedInLayout />,
+        element: <RequireLogin forPasswordChange />,
         children: [
-          page(ROLE_HOME.RECEPTIONIST, ['RECEPTIONIST'], <ReceptionPage />),
-          page(ROLE_HOME.NURSE, ['NURSE'], <TriagePage />),
-          page(ROLE_HOME.DOCTOR, ['DOCTOR'], <DoctorPage />),
-          page(ROLE_HOME.CASHIER, ['CASHIER'], <BillingPage />),
-          page(ROLE_HOME.ADMIN, ['ADMIN'], <AdminPage />),
-          page('/visits/:visitId', ['RECEPTIONIST', 'NURSE', 'DOCTOR'], <VisitPage />),
+          {
+            element: <SignedInLayout />,
+            children: [{ path: '/change-password', element: <ChangePasswordPage /> }],
+          },
         ],
       },
+      {
+        element: <RequireLogin />,
+        children: [
+          {
+            element: <SignedInLayout />,
+            children: [
+              page(ROLE_HOME.RECEPTIONIST, ['RECEPTIONIST'], <ReceptionPage />),
+              page(ROLE_HOME.NURSE, ['NURSE'], <TriagePage />),
+              page(ROLE_HOME.DOCTOR, ['DOCTOR'], <DoctorPage />),
+              page(ROLE_HOME.CASHIER, ['CASHIER'], <BillingPage />),
+              page(ROLE_HOME.ADMIN, ['ADMIN'], <AdminPage />),
+              page('/visits/:visitId', ['RECEPTIONIST', 'NURSE', 'DOCTOR'], <VisitPage />),
+            ],
+          },
+        ],
+      },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-  { path: '*', element: <NotFoundPage /> },
 ];

@@ -6,6 +6,7 @@ import { Navigate, useSearchParams } from 'react-router';
 import { z } from 'zod';
 import { ApiRequestError, apiPost, errorMessage } from '../../api/client';
 import { BackendStatus } from '../system/BackendStatus';
+import { BrandMark, Icon } from '../ui/Icon';
 import { AuthenticatorSetup } from './AuthenticatorSetup';
 import { ROLE_HOME, safeNextPath } from './roles';
 import { SESSION_QUERY_KEY, useCurrentStaff } from './session';
@@ -50,33 +51,61 @@ export function LoginPage() {
   }
 
   return (
-    <main className="narrow">
-      <h1>Log in to Sauti HMS</h1>
-      {notice ? (
-        <p role="status" className="notice">
-          {notice}
-        </p>
-      ) : null}
-      {step.kind === 'password' ? (
-        <PasswordStep
-          onNext={(next) => {
-            setNotice(null);
-            setStep({ kind: 'code', otpauthUri: next.setupRequired ? next.otpauthUri : null });
-          }}
-        />
-      ) : (
-        <CodeStep
-          otpauthUri={step.otpauthUri}
-          onExpired={(message) => {
-            setNotice(message);
-            setStep({ kind: 'password' });
-          }}
-        />
-      )}
-      <footer className="quiet">
-        <BackendStatus />
-      </footer>
-    </main>
+    <div className="auth-split">
+      <aside className="auth-brand">
+        <span className="brand">
+          <BrandMark />
+          Sauti HMS
+        </span>
+        <div>
+          <p className="auth-headline">Care that listens.</p>
+          <p className="auth-lead">
+            From arrival to prescription, every step of the visit in one place.
+          </p>
+        </div>
+        <ul className="auth-points">
+          <li>
+            <Icon name="mic" /> Swahili and English consultation notes
+          </li>
+          <li>
+            <Icon name="shield" /> Allergy checks before every prescription
+          </li>
+          <li>
+            <Icon name="check" /> A clinician reviews and signs every record
+          </li>
+        </ul>
+      </aside>
+      <div className="auth-form">
+        <main className="narrow">
+          <h1>Log in to Sauti HMS</h1>
+          <p className="page-subtitle">Use your staff account to continue.</p>
+          {notice ? (
+            <p role="status" className="notice">
+              {notice}
+            </p>
+          ) : null}
+          {step.kind === 'password' ? (
+            <PasswordStep
+              onNext={(next) => {
+                setNotice(null);
+                setStep({ kind: 'code', otpauthUri: next.setupRequired ? next.otpauthUri : null });
+              }}
+            />
+          ) : (
+            <CodeStep
+              otpauthUri={step.otpauthUri}
+              onExpired={(message) => {
+                setNotice(message);
+                setStep({ kind: 'password' });
+              }}
+            />
+          )}
+          <footer className="quiet">
+            <BackendStatus />
+          </footer>
+        </main>
+      </div>
+    </div>
   );
 }
 

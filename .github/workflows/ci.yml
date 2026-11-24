@@ -87,3 +87,24 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  image:
+    name: Docker image build and scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the image
+        run: docker build -t sauti-hms:ci backend
+
+      # Trivy runs from an image pinned by digest. The build fails on a high or critical
+      # vulnerability that already has a fixed version.
+      - name: Scan the image
+        run: |
+          mkdir -p scan
+          docker save -o scan/image.tar sauti-hms:ci
+          docker run --rm -v "$PWD/scan:/scan:ro" \
+            aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
+            image --input /scan/image.tar --scanners vuln \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1

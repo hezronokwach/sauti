@@ -95,6 +95,7 @@ class AccessRulesTest {
             new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT),
             new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/consents", ASK_CONSENT),
             new Rule(HttpMethod.POST, "/api/visits/" + UUID.randomUUID() + "/captures", ASK_CONSENT),
+            new Rule(HttpMethod.GET, "/api/visits/" + UUID.randomUUID() + "/captures", EnumSet.of(StaffRole.DOCTOR)),
             new Rule(HttpMethod.POST, "/api/captures/" + UUID.randomUUID() + "/stop", ASK_CONSENT),
             new Rule(HttpMethod.GET, "/api/captures/" + UUID.randomUUID(), ASK_CONSENT),
             new Rule(HttpMethod.PUT, "/api/captures/" + UUID.randomUUID() + "/pieces/0", ASK_CONSENT),
@@ -179,6 +180,7 @@ class AccessRulesTest {
                     HttpMethod.GET,
                     "/api/visits/" + UUID.randomUUID() + "/invoice/payment",
                     EnumSet.of(StaffRole.CASHIER)),
+            new Rule(HttpMethod.GET, "/api/admin/status", EnumSet.of(StaffRole.ADMIN)),
             new Rule(HttpMethod.POST, "/api/queue/tickets", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(HttpMethod.POST, "/api/queue/tickets/call-next", EnumSet.of(StaffRole.RECEPTIONIST)),
             new Rule(
