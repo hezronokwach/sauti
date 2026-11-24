@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { InvoicePanel } from '../billing/InvoicePanel';
 import { EmergencyAlerts } from '../queue/EmergencyAlerts';
 import { QueueList } from './QueueList';
+import { QueueStats } from './QueueStats';
 
 /**
  * The nurse's screen: take the next patient, then open them to take vitals; saving the
@@ -11,7 +12,12 @@ export function TriagePage() {
   return (
     <main className="wide">
       <h1>Triage</h1>
+      <p className="page-subtitle">Take the next patient, then record vitals and allergies.</p>
       <EmergencyAlerts />
+      <QueueStats
+        waiting={{ status: 'WAITING_TRIAGE', label: 'Waiting', icon: 'users' }}
+        active={{ status: 'IN_TRIAGE', label: 'In triage', icon: 'activity' }}
+      />
       <div className="columns">
         <QueueList
           title="Waiting for triage"
@@ -29,7 +35,12 @@ export function DoctorPage() {
   return (
     <main className="wide">
       <h1>Doctor</h1>
+      <p className="page-subtitle">Take the next patient and open their visit.</p>
       <EmergencyAlerts />
+      <QueueStats
+        waiting={{ status: 'WAITING_DOCTOR', label: 'Waiting', icon: 'users' }}
+        active={{ status: 'WITH_DOCTOR', label: 'In consultation', icon: 'stethoscope' }}
+      />
       <div className="columns">
         <QueueList
           title="Waiting for a doctor"
@@ -54,6 +65,8 @@ export function BillingPage() {
   return (
     <main className="wide">
       <h1>Billing</h1>
+      <p className="page-subtitle">Open a bill and take cash, M-Pesa or insurance.</p>
+      <QueueStats waiting={{ status: 'WAITING_PAYMENT', label: 'Waiting to pay', icon: 'card' }} />
       <div className="columns">
         <QueueList
           title="Waiting for payment"
