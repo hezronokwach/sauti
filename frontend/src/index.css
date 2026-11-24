@@ -1389,19 +1389,13 @@ button.take-next {
 .doctor-context {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   align-items: start;
   margin-bottom: 1.25rem;
 }
 
 .doctor-context > section {
   margin-bottom: 0;
-}
-
-@media (width < 64rem) {
-  .doctor-context {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 .vitals-strip {
@@ -1426,4 +1420,22 @@ button.take-next {
   margin: 0;
   font-size: 1.0625rem;
   font-weight: 700;
+}
+
+/* The consultation: the conversation on the left, the note on the right. */
+.consult-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  align-items: start;
+}
+
+.consult-layout > * {
+  min-width: 0;
+}
+
+.consent-details summary {
+  margin-bottom: 0.5rem;
+  color: var(--blue-700);
+  cursor: pointer;
 }
