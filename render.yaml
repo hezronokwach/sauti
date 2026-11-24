@@ -8,7 +8,8 @@ services:
     plan: free
     # Ohio, next to the Neon database in us-east-2.
     region: ohio
-    branch: staging
+    # main is the live branch; work is gathered on staging and merged into main.
+    branch: main
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /actuator/health
